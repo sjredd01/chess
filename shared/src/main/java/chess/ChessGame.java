@@ -107,4 +107,5 @@ public class ChessGame {
     public ChessBoard getBoard() {
         throw new RuntimeException("Not implemented");
     }
+
 }

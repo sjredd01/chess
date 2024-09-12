@@ -2,6 +2,7 @@ package chess;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Represents a single chess piece
@@ -14,7 +15,7 @@ public class ChessPiece {
     private final ChessGame.TeamColor pieceColor;
     private final PieceType type;
 
-    public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
+    public ChessPiece(ChessGame.TeamColor pieceColor, PieceType type) {
         this.pieceColor = pieceColor;
         this.type = type;
     }
@@ -55,14 +56,40 @@ public class ChessPiece {
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
 
         ChessPiece test = board.getPiece(myPosition);
+        List<ChessMove> possibleMoves = new ArrayList<>();
 
         if(test.getPieceType() == PieceType.BISHOP){
+            for(int i = 1; i < 8; i++){
+                ChessPosition newPosition = new ChessPosition(myPosition.getRow() + i, myPosition.getColumn() + i);
+                ChessMove newOne = new ChessMove(myPosition, newPosition, null);
+                possibleMoves.add(newOne);
+            }
+
+            for(int i = 1; i < 8; i++){
+                ChessPosition newPosition = new ChessPosition(myPosition.getRow() - i, myPosition.getColumn() + i);
+                ChessMove newOne = new ChessMove(myPosition, newPosition, null);
+                possibleMoves.add(newOne);
+            }
+
+            for(int i = 1; i < 8; i++){
+                ChessPosition newPosition = new ChessPosition(myPosition.getRow() + i, myPosition.getColumn() - i);
+                ChessMove newOne = new ChessMove(myPosition, newPosition, null);
+                possibleMoves.add(newOne);
+            }
+
+            for(int i = 1; i < 8; i++){
+                ChessPosition newPosition = new ChessPosition(myPosition.getRow() - i, myPosition.getColumn() - i);
+                ChessMove newOne = new ChessMove(myPosition, newPosition, null);
+                possibleMoves.add(newOne);
+            }
 
         }
 
 
-        return new ArrayList<>();
+        return possibleMoves;
     }
+
+
 
     @Override
     public String toString() {
