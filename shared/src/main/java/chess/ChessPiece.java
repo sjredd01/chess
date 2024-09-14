@@ -59,6 +59,10 @@ public class ChessPiece {
         ChessPiece test = board.getPiece(myPosition);
         List<ChessMove> possibleMoves = new ArrayList<>();
 
+        if(test.getPieceType() == PieceType.ROOK){
+            possibleMoves = rookMoves(myPosition);
+        }
+
         if(test.getPieceType() == PieceType.BISHOP){
             for(int i = 1; i < 8; i++){
                 ChessPosition newPosition = new ChessPosition(myPosition.getRow() + i, myPosition.getColumn() + i);
@@ -89,6 +93,60 @@ public class ChessPiece {
 
         return possibleMoves;
     }
+
+    public List<ChessMove> rookMoves(ChessPosition myPosition){
+        List<ChessMove> possibleMoves = new ArrayList<>();
+
+        int position = 1;
+        int backPosition = 1;
+        int rightPosition = 1;
+        int leftPosition = 1;
+
+
+        while(position < 7){
+            ChessPosition newPosition = new ChessPosition(myPosition.getRow() + position, myPosition.getColumn());
+            ChessMove newOne = new ChessMove(myPosition, newPosition, null);
+            if(newOne.getEndPosition().getRow() > 8){
+                break;
+            }
+            possibleMoves.add(newOne);
+            position ++;
+        }
+
+        while(backPosition < 7){
+            ChessPosition newPosition = new ChessPosition(myPosition.getRow() - backPosition, myPosition.getColumn());
+            ChessMove newOne = new ChessMove(myPosition, newPosition, null);
+            if(newOne.getEndPosition().getRow() <= 0){
+                break;
+            }
+            possibleMoves.add(newOne);
+            backPosition ++;
+        }
+
+        while(rightPosition < 7){
+            ChessPosition newPosition = new ChessPosition(myPosition.getRow(), myPosition.getColumn() + rightPosition);
+            ChessMove newOne = new ChessMove(myPosition, newPosition, null);
+            if(newOne.getEndPosition().getColumn() > 8){
+                break;
+            }
+            possibleMoves.add(newOne);
+            rightPosition ++;
+        }
+
+        while(leftPosition < 7){
+            ChessPosition newPosition = new ChessPosition(myPosition.getRow(), myPosition.getColumn() - leftPosition);
+            ChessMove newOne = new ChessMove(myPosition, newPosition, null);
+            if(newOne.getEndPosition().getColumn() <= 0){
+                break;
+            }
+            possibleMoves.add(newOne);
+            leftPosition ++;
+        }
+
+        return possibleMoves;
+    }
+
+
 
 
 
