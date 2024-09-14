@@ -90,6 +90,47 @@ public class ChessPiece {
 
         }
 
+        for(int i = 0; i < possibleMoves.size();){
+            if(board.getPiece(possibleMoves.get(i).getEndPosition()) != null ) {
+                if(board.getPiece(possibleMoves.get(i).getEndPosition()).getTeamColor() != board.getPiece(possibleMoves.get(i).getStartPosition()).getTeamColor()) {
+
+                    for(int k = i + 1; k < possibleMoves.size();){
+                        if(possibleMoves.get(i).getEndPosition().getRow() == possibleMoves.get(k).getEndPosition().getRow()){
+                            possibleMoves.remove(k);
+                        }else{
+                            k++;
+                        }
+                    }
+
+                    for(int j = i + 1; j < possibleMoves.size();){
+                        if(possibleMoves.get(i).getEndPosition().getColumn() == possibleMoves.get(j).getEndPosition().getColumn()){
+                            possibleMoves.remove(j);
+                        }else{
+                            j++;
+                        }
+                    }
+                    i++;
+                }else{
+                    for(int k = i + 1; k < possibleMoves.size();){
+                       if(possibleMoves.get(i).getEndPosition().getRow() == possibleMoves.get(k).getEndPosition().getRow()){
+                           possibleMoves.remove(k);
+                       }else{
+                           k++;
+                       }
+                    }
+                    for(int j = i + 1; j < possibleMoves.size();){
+                        if(possibleMoves.get(i).getEndPosition().getColumn() == possibleMoves.get(j).getEndPosition().getColumn()){
+                            possibleMoves.remove(j);
+                        }else{
+                            j++;
+                        }
+                    }
+                    possibleMoves.remove(i);
+                }
+            }else{
+                i++;
+            }
+        }
 
         return possibleMoves;
     }
@@ -109,6 +150,7 @@ public class ChessPiece {
             if(newOne.getEndPosition().getRow() > 8){
                 break;
             }
+
             possibleMoves.add(newOne);
             position ++;
         }
