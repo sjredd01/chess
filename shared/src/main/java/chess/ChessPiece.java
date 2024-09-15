@@ -60,7 +60,9 @@ public class ChessPiece {
         List<ChessMove> possibleMoves = new ArrayList<>();
 
         if(test.getPieceType() == PieceType.ROOK){
-            possibleMoves = rookMoves(myPosition);
+            possibleMoves = rookMoves(board, myPosition);
+        }if(test.getPieceType() == PieceType.KNIGHT){
+            possibleMoves = knightMoves(board, myPosition);
         }
 
         if(test.getPieceType() == PieceType.BISHOP){
@@ -90,43 +92,47 @@ public class ChessPiece {
 
         }
 
+        return possibleMoves;
+    }
+
+    private List<ChessMove> knightMoves(ChessBoard board, ChessPosition myPosition) {
+        List<ChessMove> possibleMoves = new ArrayList<>();
+
+        ChessMove newOne = knightJumps(myPosition, 1, 2);
+        ChessMove newOne1 = knightJumps(myPosition, 1, -2);
+        ChessMove newOne2 = knightJumps(myPosition, 2, 1);
+        ChessMove newOne3 = knightJumps(myPosition, -2, 1);
+        ChessMove newOne4 = knightJumps(myPosition, -1, -2);
+        ChessMove newOne5 = knightJumps(myPosition, -1, 2);
+        ChessMove newOne6 = knightJumps(myPosition, -2, -1);
+        ChessMove newOne7 = knightJumps(myPosition, 2, -1);
+        possibleMoves.add(newOne);
+        possibleMoves.add(newOne1);
+        possibleMoves.add(newOne2);
+        possibleMoves.add(newOne3);
+        possibleMoves.add(newOne4);
+        possibleMoves.add(newOne5);
+        possibleMoves.add(newOne6);
+        possibleMoves.add(newOne7);
+
+        for(int i = 0; i < possibleMoves.size();){
+            if(possibleMoves.get(i).getEndPosition().getRow() > 8 || possibleMoves.get(i).getEndPosition().getRow() <= 0){
+                possibleMoves.remove(i);
+            }else if (possibleMoves.get(i).getEndPosition().getColumn() > 8 || possibleMoves.get(i).getEndPosition().getColumn() <= 0) {
+                possibleMoves.remove(i);
+            }else{
+                i++;
+            }
+        }
+
         for(int i = 0; i < possibleMoves.size();){
             if(board.getPiece(possibleMoves.get(i).getEndPosition()) != null ) {
                 if(board.getPiece(possibleMoves.get(i).getEndPosition()).getTeamColor() != board.getPiece(possibleMoves.get(i).getStartPosition()).getTeamColor()) {
-
-                    for(int k = i + 1; k < possibleMoves.size();){
-                        if(possibleMoves.get(i).getEndPosition().getRow() == possibleMoves.get(k).getEndPosition().getRow()){
-                            possibleMoves.remove(k);
-                        }else{
-                            k++;
-                        }
-                    }
-
-                    for(int j = i + 1; j < possibleMoves.size();){
-                        if(possibleMoves.get(i).getEndPosition().getColumn() == possibleMoves.get(j).getEndPosition().getColumn()){
-                            possibleMoves.remove(j);
-                        }else{
-                            j++;
-                        }
-                    }
                     i++;
                 }else{
-                    for(int k = i + 1; k < possibleMoves.size();){
-                       if(possibleMoves.get(i).getEndPosition().getRow() == possibleMoves.get(k).getEndPosition().getRow()){
-                           possibleMoves.remove(k);
-                       }else{
-                           k++;
-                       }
-                    }
-                    for(int j = i + 1; j < possibleMoves.size();){
-                        if(possibleMoves.get(i).getEndPosition().getColumn() == possibleMoves.get(j).getEndPosition().getColumn()){
-                            possibleMoves.remove(j);
-                        }else{
-                            j++;
-                        }
-                    }
                     possibleMoves.remove(i);
                 }
+
             }else{
                 i++;
             }
@@ -135,7 +141,12 @@ public class ChessPiece {
         return possibleMoves;
     }
 
-    public List<ChessMove> rookMoves(ChessPosition myPosition){
+    public ChessMove knightJumps(ChessPosition myPosition, int jumpRow, int jumpCol){
+        ChessPosition newPosition = new ChessPosition(myPosition.getRow() + jumpRow, myPosition.getColumn() + jumpCol);
+        return new ChessMove(myPosition, newPosition, null);
+    }
+
+    public List<ChessMove> rookMoves(ChessBoard board, ChessPosition myPosition){
         List<ChessMove> possibleMoves = new ArrayList<>();
 
         int position = 1;
@@ -183,6 +194,52 @@ public class ChessPiece {
             }
             possibleMoves.add(newOne);
             leftPosition ++;
+        }
+
+        for(int i = 0; i < possibleMoves.size();){
+            if(board.getPiece(possibleMoves.get(i).getEndPosition()) != null ) {
+                if(board.getPiece(possibleMoves.get(i).getEndPosition()).getTeamColor() != board.getPiece(possibleMoves.get(i).getStartPosition()).getTeamColor()) {
+
+                    for(int k = i + 1; k < possibleMoves.size();){
+                        if(possibleMoves.get(i).getEndPosition().getRow() == possibleMoves.get(k).getEndPosition().getRow()){
+                            possibleMoves.remove(k);
+                        }else{
+                            k++;
+                        }
+                    }
+
+                    for(int j = i + 1; j < possibleMoves.size();){
+                        if(possibleMoves.get(i).getEndPosition().getColumn() == possibleMoves.get(j).getEndPosition().getColumn()){
+                            possibleMoves.remove(j);
+                        }else{
+                            j++;
+                        }
+                    }
+                    i++;
+                }else{
+                    for(int k = i + 1; k < possibleMoves.size();){
+                        if(possibleMoves.get(i).getEndPosition().getRow() == possibleMoves.get(k).getEndPosition().getRow()){
+                            possibleMoves.remove(k);
+                        }else{
+                            k++;
+                        }
+                    }
+                    for(int j = i + 1; j < possibleMoves.size();){
+                        if(possibleMoves.get(i).getEndPosition().getColumn() == possibleMoves.get(j).getEndPosition().getColumn()){
+                            if(possibleMoves.get(i).getEndPosition().getRow() > possibleMoves.get(j).getEndPosition().getRow()){
+                                possibleMoves.remove(j);
+                            }else{
+                                j++;
+                            }
+                        }else{
+                            j++;
+                        }
+                    }
+                    possibleMoves.remove(i);
+                }
+            }else{
+                i++;
+            }
         }
 
         return possibleMoves;
