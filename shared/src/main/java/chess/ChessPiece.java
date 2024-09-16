@@ -1,9 +1,6 @@
 package chess;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Represents a single chess piece
@@ -63,6 +60,8 @@ public class ChessPiece {
             possibleMoves = rookMoves(board, myPosition);
         }if(test.getPieceType() == PieceType.KNIGHT){
             possibleMoves = knightMoves(board, myPosition);
+        }if(test.getPieceType() == PieceType.KING){
+            possibleMoves = kingMoves(board, myPosition);
         }
 
         if(test.getPieceType() == PieceType.BISHOP){
@@ -115,28 +114,7 @@ public class ChessPiece {
         possibleMoves.add(newOne6);
         possibleMoves.add(newOne7);
 
-        for(int i = 0; i < possibleMoves.size();){
-            if(possibleMoves.get(i).getEndPosition().getRow() > 8 || possibleMoves.get(i).getEndPosition().getRow() <= 0){
-                possibleMoves.remove(i);
-            }else if (possibleMoves.get(i).getEndPosition().getColumn() > 8 || possibleMoves.get(i).getEndPosition().getColumn() <= 0) {
-                possibleMoves.remove(i);
-            }else{
-                i++;
-            }
-        }
-
-        for(int i = 0; i < possibleMoves.size();){
-            if(board.getPiece(possibleMoves.get(i).getEndPosition()) != null ) {
-                if(board.getPiece(possibleMoves.get(i).getEndPosition()).getTeamColor() != board.getPiece(possibleMoves.get(i).getStartPosition()).getTeamColor()) {
-                    i++;
-                }else{
-                    possibleMoves.remove(i);
-                }
-
-            }else{
-                i++;
-            }
-        }
+        possibleMoves = removeMoves(board, myPosition, possibleMoves);
 
         return possibleMoves;
     }
@@ -196,10 +174,18 @@ public class ChessPiece {
             leftPosition ++;
         }
 
-        for(int i = 0; i < possibleMoves.size();){
-            if(board.getPiece(possibleMoves.get(i).getEndPosition()) != null ) {
-                if(board.getPiece(possibleMoves.get(i).getEndPosition()).getTeamColor() != board.getPiece(possibleMoves.get(i).getStartPosition()).getTeamColor()) {
+        Collections.sort(possibleMoves, new Comparator<ChessMove>() {
+            @Override
+            public int compare(ChessMove o1, ChessMove o2) {
+                return 0;
+            }
+        });
 
+        for(int i = 0; i < possibleMoves.size();){
+            if(board.getPiece(possibleMoves.get(i).getEndPosition()) == null ) {
+                i++;
+            }else{
+                if(board.getPiece(possibleMoves.get(i).getEndPosition()).getTeamColor() != board.getPiece(possibleMoves.get(i).getStartPosition()).getTeamColor()) {
                     for(int k = i + 1; k < possibleMoves.size();){
                         if(possibleMoves.get(i).getEndPosition().getRow() == possibleMoves.get(k).getEndPosition().getRow()){
                             possibleMoves.remove(k);
@@ -237,13 +223,68 @@ public class ChessPiece {
                     }
                     possibleMoves.remove(i);
                 }
+            }
+        }
+
+        return possibleMoves;
+    }
+
+    public List<ChessMove> kingMoves(ChessBoard board, ChessPosition myPosition){
+        List<ChessMove> possibleMoves = new ArrayList<>();
+        ChessMove newOne = knightJumps(myPosition, 1, 0);
+        ChessMove newOne1 = knightJumps(myPosition, -1, 0);
+        ChessMove newOne2 = knightJumps(myPosition, 0, 1);
+        ChessMove newOne3 = knightJumps(myPosition, 0, -1);
+        ChessMove newOne4 = knightJumps(myPosition, 1, 1);
+        ChessMove newOne5 = knightJumps(myPosition, -1, 1);
+        ChessMove newOne6 = knightJumps(myPosition, 1, -1);
+        ChessMove newOne7 = knightJumps(myPosition, -1, -1);
+
+        possibleMoves.add(newOne);
+        possibleMoves.add(newOne1);
+        possibleMoves.add(newOne2);
+        possibleMoves.add(newOne3);
+        possibleMoves.add(newOne4);
+        possibleMoves.add(newOne5);
+        possibleMoves.add(newOne6);
+        possibleMoves.add(newOne7);
+
+        possibleMoves = removeMoves(board, myPosition, possibleMoves);
+
+        return possibleMoves;
+    }
+
+    public List<ChessMove> removeMoves(ChessBoard board, ChessPosition myPosition, List<ChessMove> possibleMoves){
+        for(int i = 0; i < possibleMoves.size();){
+            if(possibleMoves.get(i).getEndPosition().getRow() > 8 || possibleMoves.get(i).getEndPosition().getRow() <= 0){
+                possibleMoves.remove(i);
+            }else if (possibleMoves.get(i).getEndPosition().getColumn() > 8 || possibleMoves.get(i).getEndPosition().getColumn() <= 0) {
+                possibleMoves.remove(i);
+            }else{
+                i++;
+            }
+        }
+
+        for(int i = 0; i < possibleMoves.size();){
+            if(board.getPiece(possibleMoves.get(i).getEndPosition()) != null ) {
+                if(board.getPiece(possibleMoves.get(i).getEndPosition()).getTeamColor() != board.getPiece(possibleMoves.get(i).getStartPosition()).getTeamColor()) {
+                    i++;
+                }else{
+                    possibleMoves.remove(i);
+                }
+
             }else{
                 i++;
             }
         }
 
         return possibleMoves;
+
     }
+
+
+
+
 
 
 
@@ -269,4 +310,5 @@ public class ChessPiece {
     public int hashCode() {
         return Objects.hash(pieceColor, type);
     }
+
 }
