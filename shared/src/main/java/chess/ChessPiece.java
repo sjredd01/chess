@@ -115,7 +115,7 @@ public class ChessPiece {
         while(position < 7){
             ChessPosition newPosition = new ChessPosition(myPosition.getRow() + position, myPosition.getColumn());
             ChessMove newOne = new ChessMove(myPosition, newPosition, null);
-            if(newOne.getEndPosition().getRow() > 8){
+            if((newOne.getEndPosition().getRow() > 8)){
                 break;
             }
 
@@ -126,7 +126,7 @@ public class ChessPiece {
         while(backPosition < 7){
             ChessPosition newPosition = new ChessPosition(myPosition.getRow() - backPosition, myPosition.getColumn());
             ChessMove newOne = new ChessMove(myPosition, newPosition, null);
-            if(newOne.getEndPosition().getRow() <= 0){
+            if((newOne.getEndPosition().getRow() <= 0)){
                 break;
             }
             possibleMoves.add(newOne);
@@ -136,7 +136,7 @@ public class ChessPiece {
         while(rightPosition < 7){
             ChessPosition newPosition = new ChessPosition(myPosition.getRow(), myPosition.getColumn() + rightPosition);
             ChessMove newOne = new ChessMove(myPosition, newPosition, null);
-            if(newOne.getEndPosition().getColumn() > 8){
+            if((newOne.getEndPosition().getColumn() > 8)){
                 break;
             }
             possibleMoves.add(newOne);
@@ -146,60 +146,14 @@ public class ChessPiece {
         while(leftPosition < 7){
             ChessPosition newPosition = new ChessPosition(myPosition.getRow(), myPosition.getColumn() - leftPosition);
             ChessMove newOne = new ChessMove(myPosition, newPosition, null);
-            if(newOne.getEndPosition().getColumn() <= 0){
+            if((newOne.getEndPosition().getColumn() <= 0)){
                 break;
             }
             possibleMoves.add(newOne);
             leftPosition ++;
         }
 
-        possibleMoves = removeRookMoves(board, myPosition, possibleMoves);
-
-
-//        for(int i = 0; i < possibleMoves.size();){
-//            if(board.getPiece(possibleMoves.get(i).getEndPosition()) == null) {
-//                i++;
-//            }else{
-//                if(board.getPiece(possibleMoves.get(i).getEndPosition()).getTeamColor() != board.getPiece(possibleMoves.get(i).getStartPosition()).getTeamColor()) {
-//                    for(int k = i + 1; k < possibleMoves.size();){
-//                        if(possibleMoves.get(i).getEndPosition().getRow() == possibleMoves.get(k).getEndPosition().getRow()){
-//                            possibleMoves.remove(k);
-//                        }else{
-//                            k++;
-//                        }
-//                    }
-//
-//                    for(int j = i + 1; j < possibleMoves.size();){
-//                        if(possibleMoves.get(i).getEndPosition().getColumn() == possibleMoves.get(j).getEndPosition().getColumn()){
-//                            possibleMoves.remove(j);
-//                        }else{
-//                            j++;
-//                        }
-//                    }
-//                    i++;
-//                }else{
-//                    for(int k = i + 1; k < possibleMoves.size();){
-//                        if(possibleMoves.get(i).getEndPosition().getRow() == possibleMoves.get(k).getEndPosition().getRow()){
-//                            possibleMoves.remove(k);
-//                        }else{
-//                            k++;
-//                        }
-//                    }
-//                    for(int j = i + 1; j < possibleMoves.size();){
-//                        if(possibleMoves.get(i).getEndPosition().getColumn() == possibleMoves.get(j).getEndPosition().getColumn()){
-//                            if(possibleMoves.get(i).getEndPosition().getRow() > possibleMoves.get(j).getEndPosition().getRow()){
-//                                possibleMoves.remove(j);
-//                            }else{
-//                                j++;
-//                            }
-//                        }else{
-//                            j++;
-//                        }
-//                    }
-//                    possibleMoves.remove(i);
-//                }
-//            }
-//        }
+      possibleMoves = removeRookMoves(board, myPosition, possibleMoves);
 
         return possibleMoves;
     }
@@ -293,25 +247,57 @@ public class ChessPiece {
     public List<ChessMove> removeRookMoves(ChessBoard board, ChessPosition myPosition, List<ChessMove> possibleMoves){
 
 
-        for(int i = 0; i < possibleMoves.size();) {
-            if (board.getPiece(possibleMoves.get(i).getEndPosition()) != null) {
-                for (int k = i; k < possibleMoves.size(); ) {
-                    if ((possibleMoves.get(i).getEndPosition().getRow() > myPosition.getRow())) {
-                        possibleMoves.remove(k);
-                    } else if (possibleMoves.get(i).getEndPosition().getRow() < myPosition.getRow()) {
-                        possibleMoves.remove(k);
-                    } else if (possibleMoves.get(i).getEndPosition().getColumn() < myPosition.getColumn()) {
-                        possibleMoves.remove(k);
-                    } else if (possibleMoves.get(i).getEndPosition().getColumn() > myPosition.getColumn()) {
-                        possibleMoves.remove(k);
-                    } else {
-                        k++;
+        for(int i = 0; i < possibleMoves.size();){
+            if(board.getPiece(possibleMoves.get(i).getEndPosition()) != null) {
+                if(myPosition.getRow() < possibleMoves.get(i).getEndPosition().getRow()){
+                    for(int k = i; k < possibleMoves.size();){
+                        if(possibleMoves.get(i).getEndPosition().getRow() < possibleMoves.get(k).getEndPosition().getRow()){
+                            possibleMoves.remove(k);
+                        }else{
+                            k++;
+                        }
                     }
+                } else if (myPosition.getRow() > possibleMoves.get(i).getEndPosition().getRow()) {
+                    for(int k = i; k < possibleMoves.size();){
+                        if(possibleMoves.get(i).getEndPosition().getRow() > possibleMoves.get(k).getEndPosition().getRow()){
+                            possibleMoves.remove(k);
+                        }else{
+                            k++;
+                        }
+                    }
+                }else if(myPosition.getColumn() < possibleMoves.get(i).getEndPosition().getColumn()){
+                    for(int k = i; k < possibleMoves.size();){
+                        if(possibleMoves.get(i).getEndPosition().getColumn() < possibleMoves.get(k).getEndPosition().getColumn()){
+                            possibleMoves.remove(k);
+                        }else{
+                            k++;
+                        }
+                    }
+                }else if(myPosition.getColumn() > possibleMoves.get(i).getEndPosition().getColumn()){
+                    for(int k = i; k < possibleMoves.size();){
+                        if(possibleMoves.get(i).getEndPosition().getColumn() > possibleMoves.get(k).getEndPosition().getColumn()){
+                            possibleMoves.remove(k);
+                        }else{
+                            k++;
+                        }
+                    }
+                }
+            }
+            i++;
+        }
+
+        for(int i = 0; i < possibleMoves.size();){
+            if(board.getPiece(possibleMoves.get(i).getEndPosition()) != null){
+                if(board.getPiece(possibleMoves.get(i).getEndPosition()).getTeamColor() == board.getPiece(possibleMoves.get(i).getStartPosition()).getTeamColor()){
+                    possibleMoves.remove(i);
+                }else{
+                   i++;
                 }
             }else{
                 i++;
             }
         }
+
 
         return possibleMoves;
     }
