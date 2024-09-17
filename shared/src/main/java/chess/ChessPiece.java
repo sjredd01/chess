@@ -325,7 +325,6 @@ public class ChessPiece {
             possibleMoves = pawnDown(board, myPosition);
         }
 
-
         return possibleMoves;
     }
 
@@ -334,17 +333,60 @@ public class ChessPiece {
 
         ChessPosition newPosition = new ChessPosition(myPosition.getRow() + 2, myPosition.getColumn());
         ChessPosition newPosition1 = new ChessPosition(myPosition.getRow() + 1, myPosition.getColumn());
+        ChessPosition attackPosition1 = new ChessPosition(myPosition.getRow() + 1, myPosition.getColumn() + 1);
+        ChessPosition attackPosition2 = new ChessPosition(myPosition.getRow() + 1, myPosition.getColumn() - 1);
 
+        if(board.getPiece(attackPosition1) != null && board.getPiece(attackPosition1).pieceColor == ChessGame.TeamColor.BLACK){
+            ChessMove newOne = knightJumps(myPosition, 1, 1);
+            if(newOne.getEndPosition().getRow() == 1){
+                ChessMove newOne1 = promotePawn(newOne, PieceType.BISHOP);
+                ChessMove newOne2 = promotePawn(newOne, PieceType.QUEEN);
+                ChessMove newOne3 = promotePawn(newOne, PieceType.ROOK);
+                ChessMove newOne4 =  promotePawn(newOne, PieceType.KNIGHT);
+                possibleMoves.add(newOne1);
+                possibleMoves.add(newOne2);
+                possibleMoves.add(newOne3);
+                possibleMoves.add(newOne4);
+            }else {
+                possibleMoves.add(newOne);
+            }
+        }
+
+        if(board.getPiece(attackPosition2) != null && board.getPiece(attackPosition2).pieceColor == ChessGame.TeamColor.BLACK){
+            ChessMove newOne = knightJumps(myPosition, 1, -1);
+            if(newOne.getEndPosition().getRow() == 1){
+                ChessMove newOne1 = promotePawn(newOne, PieceType.BISHOP);
+                ChessMove newOne2 = promotePawn(newOne, PieceType.QUEEN);
+                ChessMove newOne3 = promotePawn(newOne, PieceType.ROOK);
+                ChessMove newOne4 =  promotePawn(newOne, PieceType.KNIGHT);
+                possibleMoves.add(newOne1);
+                possibleMoves.add(newOne2);
+                possibleMoves.add(newOne3);
+                possibleMoves.add(newOne4);
+            }else {
+                possibleMoves.add(newOne);
+            }
+        }
 
         if(board.getPiece(newPosition1) == null){
             ChessMove newOne = knightJumps(myPosition, 1, 0);
-            possibleMoves.add(newOne);
+            if(newOne.getEndPosition().getRow() == 8){
+                ChessMove newOne1 = promotePawn(newOne, PieceType.BISHOP);
+                ChessMove newOne2 = promotePawn(newOne, PieceType.QUEEN);
+                ChessMove newOne3 = promotePawn(newOne, PieceType.ROOK);
+                ChessMove newOne4 =  promotePawn(newOne, PieceType.KNIGHT);
+                possibleMoves.add(newOne1);
+                possibleMoves.add(newOne2);
+                possibleMoves.add(newOne3);
+                possibleMoves.add(newOne4);
+            }else{
+                possibleMoves.add(newOne);
+            }
             if(myPosition.getRow() == 2 && (board.getPiece(newPosition) == null )){
                 ChessMove newOne1 = knightJumps(myPosition, 2, 0);
                 possibleMoves.add(newOne1);
             }
         }
-
 
         return possibleMoves;
     }
@@ -354,31 +396,69 @@ public class ChessPiece {
 
         ChessPosition newPosition = new ChessPosition(myPosition.getRow() - 2, myPosition.getColumn());
         ChessPosition newPosition1 = new ChessPosition(myPosition.getRow() - 1, myPosition.getColumn());
+        ChessPosition attackPosition1 = new ChessPosition(myPosition.getRow() - 1, myPosition.getColumn() - 1);
+        ChessPosition attackPosition2 = new ChessPosition(myPosition.getRow() - 1, myPosition.getColumn() + 1);
+
+        if(board.getPiece(attackPosition1) != null && board.getPiece(attackPosition1).pieceColor == ChessGame.TeamColor.WHITE){
+            ChessMove newOne = knightJumps(myPosition, -1, -1);
+            if(newOne.getEndPosition().getRow() == 1){
+                ChessMove newOne1 = promotePawn(newOne, PieceType.BISHOP);
+                ChessMove newOne2 = promotePawn(newOne, PieceType.QUEEN);
+                ChessMove newOne3 = promotePawn(newOne, PieceType.ROOK);
+                ChessMove newOne4 =  promotePawn(newOne, PieceType.KNIGHT);
+                possibleMoves.add(newOne1);
+                possibleMoves.add(newOne2);
+                possibleMoves.add(newOne3);
+                possibleMoves.add(newOne4);
+            }else {
+                possibleMoves.add(newOne);
+            }
+
+        }
+
+        if(board.getPiece(attackPosition2) != null && board.getPiece(attackPosition2).pieceColor == ChessGame.TeamColor.WHITE){
+            ChessMove newOne = knightJumps(myPosition, -1, +1);
+            if(newOne.getEndPosition().getRow() == 1){
+                ChessMove newOne1 = promotePawn(newOne, PieceType.BISHOP);
+                ChessMove newOne2 = promotePawn(newOne, PieceType.QUEEN);
+                ChessMove newOne3 = promotePawn(newOne, PieceType.ROOK);
+                ChessMove newOne4 =  promotePawn(newOne, PieceType.KNIGHT);
+                possibleMoves.add(newOne1);
+                possibleMoves.add(newOne2);
+                possibleMoves.add(newOne3);
+                possibleMoves.add(newOne4);
+            }else {
+                possibleMoves.add(newOne);
+            }
+        }
 
         if(board.getPiece(newPosition1) == null){
             ChessMove newOne = knightJumps(myPosition, -1, 0);
-            possibleMoves.add(newOne);
+            if(newOne.getEndPosition().getRow() == 1){
+                ChessMove newOne1 = promotePawn(newOne, PieceType.BISHOP);
+                ChessMove newOne2 = promotePawn(newOne, PieceType.QUEEN);
+                ChessMove newOne3 = promotePawn(newOne, PieceType.ROOK);
+                ChessMove newOne4 =  promotePawn(newOne, PieceType.KNIGHT);
+                possibleMoves.add(newOne1);
+                possibleMoves.add(newOne2);
+                possibleMoves.add(newOne3);
+                possibleMoves.add(newOne4);
+            }else {
+                possibleMoves.add(newOne);
+            }
             if(myPosition.getRow() == 7 && (board.getPiece(newPosition) == null )){
                 ChessMove newOne1 = knightJumps(myPosition, -2, 0);
                 possibleMoves.add(newOne1);
             }
         }
 
-
-
         return possibleMoves;
     }
 
+    public ChessMove promotePawn(ChessMove endOfBoard, ChessPiece.PieceType promoteTo){
 
-
-
-
-
-
-
-
-
-
+        return new ChessMove(endOfBoard.getStartPosition(), endOfBoard.getEndPosition(), promoteTo);
+    }
 
         @Override
     public String toString() {
