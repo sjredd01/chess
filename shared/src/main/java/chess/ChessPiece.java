@@ -55,6 +55,7 @@ public class ChessPiece {
 
         ChessPiece test = board.getPiece(myPosition);
         List<ChessMove> possibleMoves = new ArrayList<>();
+        List<ChessMove> possibleMoves1 = new ArrayList<>();
 
         if(test.getPieceType() == PieceType.ROOK){
             possibleMoves = rookMoves(board, myPosition);
@@ -67,6 +68,13 @@ public class ChessPiece {
         }
         if(test.getPieceType() == PieceType.BISHOP){
             possibleMoves = bishopMoves(board, myPosition);
+        }
+        if(test.getPieceType() == PieceType.QUEEN){
+            possibleMoves = bishopMoves(board, myPosition);
+            possibleMoves1 = rookMoves(board,myPosition);
+            possibleMoves.addAll(possibleMoves1);
+
+
         }
 
         return possibleMoves;
