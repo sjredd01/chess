@@ -65,7 +65,6 @@ public class ChessPiece {
         }if(test.getPieceType() == PieceType.PAWN){
             possibleMoves = pawnMoves(board, myPosition);
         }
-
         if(test.getPieceType() == PieceType.BISHOP){
             possibleMoves = bishopMoves(board, myPosition);
         }
@@ -110,7 +109,6 @@ public class ChessPiece {
         int backPosition = 1;
         int rightPosition = 1;
         int leftPosition = 1;
-
 
         while(position < 7){
             ChessPosition newPosition = new ChessPosition(myPosition.getRow() + position, myPosition.getColumn());
@@ -237,8 +235,9 @@ public class ChessPiece {
             ChessMove newOne = new ChessMove(myPosition, newPosition, null);
             possibleMoves.add(newOne);
         }
+        possibleMoves = removeOffBoard(board, possibleMoves);
 
-        possibleMoves = removeMoves(board, myPosition, possibleMoves);
+        possibleMoves = removeBishopMoves(board, myPosition, possibleMoves);
 
         return possibleMoves;
 
@@ -444,6 +443,87 @@ public class ChessPiece {
     public ChessMove promotePawn(ChessMove endOfBoard, ChessPiece.PieceType promoteTo){
 
         return new ChessMove(endOfBoard.getStartPosition(), endOfBoard.getEndPosition(), promoteTo);
+    }
+
+    public List<ChessMove> removeBishopMoves(ChessBoard board, ChessPosition myPosition, List<ChessMove> possibleMoves){
+        int myRow = myPosition.getRow();
+        int myColumn = myPosition.getColumn();
+
+        for(int i = 0; i < possibleMoves.size();) {
+            int checkRow = possibleMoves.get(i).getEndPosition().getRow();
+            int checkColumn = possibleMoves.get(i).getEndPosition().getColumn();
+
+            if(board.getPiece(possibleMoves.get(i).getEndPosition()) != null){
+                if((myRow < checkRow) && (myColumn < checkColumn)){
+                    for(int k = i; k < possibleMoves.size();){
+                        int largerRow = possibleMoves.get(k).getEndPosition().getRow();
+                        int largerColumn = possibleMoves.get(k).getEndPosition().getColumn();
+                        if((checkRow < largerRow) && (checkColumn < largerColumn)){
+                            possibleMoves.remove(k);
+                        }else{
+                            k++;
+                        }
+                    }
+                }else if((myRow < checkRow) && (myColumn > checkColumn)){
+                        for(int k = i; k < possibleMoves.size();){
+                            int largerRow = possibleMoves.get(k).getEndPosition().getRow();
+                            int largerColumn = possibleMoves.get(k).getEndPosition().getColumn();
+                            if((checkRow < largerRow) && (checkColumn > largerColumn)){
+                                possibleMoves.remove(k);
+                            }else{
+                                k++;
+                            }
+                        }
+
+                }else if ((myRow > checkRow) && (myColumn > checkColumn)) {
+                        for (int k = i; k < possibleMoves.size(); ) {
+                            int largerRow = possibleMoves.get(k).getEndPosition().getRow();
+                            int largerColumn = possibleMoves.get(k).getEndPosition().getColumn();
+                            if ((checkRow > largerRow) && (checkColumn > largerColumn)) {
+                                possibleMoves.remove(k);
+                            } else {
+                                k++;
+                            }
+                        }
+                }else if((myRow > checkRow) && (myColumn < checkColumn)) {
+                    for (int k = i; k < possibleMoves.size(); ) {
+                        int largerRow = possibleMoves.get(k).getEndPosition().getRow();
+                        int largerColumn = possibleMoves.get(k).getEndPosition().getColumn();
+                        if ((checkRow > largerRow) && (checkColumn < largerColumn)) {
+                            possibleMoves.remove(k);
+                        } else {
+                            k++;
+                        }
+                    }
+                }
+                }
+            i++;
+        }
+
+        for(int i = 0; i < possibleMoves.size();){
+            if(board.getPiece(possibleMoves.get(i).getEndPosition()) != null){
+                if(board.getPiece(possibleMoves.get(i).getEndPosition()).getTeamColor() == board.getPiece(possibleMoves.get(i).getStartPosition()).getTeamColor()){
+                    possibleMoves.remove(i);
+                }else{
+                    i++;
+                }
+            }else{
+                i++;
+            }
+        }
+        return possibleMoves;
+    }
+
+    public List<ChessMove> removeOffBoard(ChessBoard board, List<ChessMove> possibleMoves){
+        for(int i = 0; i < possibleMoves.size();){
+            if((possibleMoves.get(i).getEndPosition().getRow() > 8) || (possibleMoves.get(i).getEndPosition().getRow() < 1) || (possibleMoves.get(i).getEndPosition().getColumn() > 8) || (possibleMoves.get(i).getEndPosition().getColumn() < 1)){
+                possibleMoves.remove(i);
+            }else{
+                i++;
+            }
+        }
+
+        return possibleMoves;
     }
 
         @Override
