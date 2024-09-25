@@ -80,6 +80,10 @@ public class ChessBoard {
         }
     }
 
+    public void removePiece(ChessPosition position) {
+        squares[position.getRow() - 1][position.getColumn() - 1] = null;
+    }
+
     @Override
     public String toString() {
         return "ChessBoard{" +

@@ -23,7 +23,7 @@ public class ChessGame {
      * @return Which team's turn it is
      */
     public TeamColor getTeamTurn() {
-        throw new RuntimeException("Not implemented");
+        return teamColor;
     }
 
     /**
@@ -32,7 +32,7 @@ public class ChessGame {
      * @param team the team whose turn it is
      */
     public void setTeamTurn(TeamColor team) {
-        throw new RuntimeException("Not implemented");
+        teamColor = team;
     }
 
     /**
@@ -59,10 +59,17 @@ public class ChessGame {
         Collection<ChessMove> possibleMoves;
         possibleMoves = myPiece.pieceMoves(getBoard(), startPosition);
 
-        possibleMoves.removeIf(move -> isInCheck(teamColor));
+        if(myPiece.getPieceType() == ChessPiece.PieceType.KING){
+            Collection<ChessMove> enemyMoves = possibleEnemyMoves(board,teamColor);
+            for(ChessMove move: possibleMoves){
+                for(ChessMove enemyMove: enemyMoves){
+                    if(move == enemyMove){
 
+                    }
+                }
+            }
 
-
+        }
 
         return possibleMoves;
     }
@@ -83,11 +90,19 @@ public class ChessGame {
                 break;
             }
         }
-        if (!isValid){
-            throw new InvalidMoveException("The move is invalid.");
+        if(!isValid){
+            throw new InvalidMoveException();
         }
-        new ChessPosition(move.getEndPosition().getRow(), move.getEndPosition().getColumn());
-
+        if((move.getEndPosition().getRow() == 8 || move.getEndPosition().getRow() == 1) && board.getPiece(move.getStartPosition()).getPieceType() == ChessPiece.PieceType.PAWN){
+            TeamColor pieceColor = board.getPiece(move.getStartPosition()).getTeamColor();
+            ChessPiece promotion = new ChessPiece(pieceColor, move.getPromotionPiece());
+            board.addPiece(new ChessPosition(move.getEndPosition().getRow(), move.getEndPosition().getColumn()), promotion);;
+            board.removePiece(move.getStartPosition());
+        }else{
+            board.addPiece(new ChessPosition(move.getEndPosition().getRow(), move.getEndPosition().getColumn()), board.getPiece(move.getStartPosition()));;
+            board.removePiece(move.getStartPosition());
+        }
+        
     }
 
     /**
@@ -185,7 +200,5 @@ public class ChessGame {
         return possibleMove;
 
     }
-
-
 
 }
