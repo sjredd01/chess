@@ -60,15 +60,11 @@ public class ChessGame {
         possibleMoves = myPiece.pieceMoves(getBoard(), startPosition);
 
         if(myPiece.getPieceType() == ChessPiece.PieceType.KING){
-            Collection<ChessMove> enemyMoves = possibleEnemyMoves(board,teamColor);
-            for(ChessMove move: possibleMoves){
-                for(ChessMove enemyMove: enemyMoves){
-                    if(move == enemyMove){
-
-                    }
-                }
+            TeamColor color = myPiece.getTeamColor();
+            Collection<ChessMove> enemyMoves = possibleEnemyMoves(board, color);
+            for(ChessMove enemy : enemyMoves){
+                possibleMoves.removeIf(move -> move.getEndPosition().equals(enemy.getEndPosition()));
             }
-
         }
 
         return possibleMoves;
@@ -102,7 +98,7 @@ public class ChessGame {
             board.addPiece(new ChessPosition(move.getEndPosition().getRow(), move.getEndPosition().getColumn()), board.getPiece(move.getStartPosition()));;
             board.removePiece(move.getStartPosition());
         }
-        
+
     }
 
     /**
