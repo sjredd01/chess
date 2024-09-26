@@ -202,7 +202,15 @@ public class ChessGame {
 
     public boolean willBeInCheck(TeamColor teamColor, ChessMove move, ChessPiece myPiece) {
         this.teamColor = teamColor;
-        
+
+        ChessPiece toSave = null;
+
+        boolean pieceToSave = false;
+        if(board.getPiece(move.getEndPosition()) != null){
+            toSave = board.getPiece(move.getEndPosition());
+            pieceToSave = true;
+        }
+
         board.removePiece(move.getStartPosition());
         board.addPiece(move.getEndPosition(), myPiece);
 
@@ -213,11 +221,17 @@ public class ChessGame {
             if(possibleMove.getEndPosition().equals(kingPosition)){
                 board.removePiece(move.getEndPosition());
                 board.addPiece(move.getStartPosition(), myPiece);
+                if(pieceToSave){
+                    board.addPiece(move.getEndPosition(), toSave);
+                }
                 return true;
             }
         }
         board.removePiece(move.getEndPosition());
         board.addPiece(move.getStartPosition(), myPiece);
+        if(pieceToSave){
+            board.addPiece(move.getEndPosition(), toSave);
+        }
         return false;
     }
 
