@@ -12,11 +12,12 @@ import java.util.List;
  */
 public class ChessGame {
 
-    private ChessBoard board;
+    private ChessBoard board = new ChessBoard();
     private TeamColor teamColor;
 
     public ChessGame() {
-
+        board.resetBoard();
+        teamColor = TeamColor.WHITE;
     }
 
     /**
@@ -87,6 +88,14 @@ public class ChessGame {
         }
 
         Collection<ChessMove> valid = validMoves(move.getStartPosition());
+
+        if(valid == null){
+            throw new InvalidMoveException();
+        }
+
+        if(board.getPiece(move.getStartPosition()).getTeamColor() != teamColor){
+            throw new InvalidMoveException();
+        }
 
         boolean isValid = false;
 
