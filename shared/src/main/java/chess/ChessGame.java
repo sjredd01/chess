@@ -80,7 +80,15 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
+        try {
+            Collection<ChessMove> valid = validMoves(move.getStartPosition());
+        } catch (NullPointerException e) {
+            throw new InvalidMoveException();
+        }
+
+
         Collection<ChessMove> valid = validMoves(move.getStartPosition());
+
         boolean isValid = false;
 
         for(ChessMove validMove : valid){
@@ -89,9 +97,11 @@ public class ChessGame {
                 break;
             }
         }
+
         if(!isValid){
             throw new InvalidMoveException();
         }
+
         if((move.getEndPosition().getRow() == 8 || move.getEndPosition().getRow() == 1) && board.getPiece(move.getStartPosition()).getPieceType() == ChessPiece.PieceType.PAWN){
             TeamColor pieceColor = board.getPiece(move.getStartPosition()).getTeamColor();
             ChessPiece promotion = new ChessPiece(pieceColor, move.getPromotionPiece());
