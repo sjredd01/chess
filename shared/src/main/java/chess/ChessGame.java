@@ -86,7 +86,6 @@ public class ChessGame {
             throw new InvalidMoveException();
         }
 
-
         Collection<ChessMove> valid = validMoves(move.getStartPosition());
 
         boolean isValid = false;
@@ -111,7 +110,6 @@ public class ChessGame {
             board.addPiece(new ChessPosition(move.getEndPosition().getRow(), move.getEndPosition().getColumn()), board.getPiece(move.getStartPosition()));;
             board.removePiece(move.getStartPosition());
         }
-
     }
 
     /**
@@ -121,13 +119,12 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
-        this.teamColor = teamColor;
 
         ChessPosition kingPosition = kingPosition(teamColor);
         Collection<ChessMove> enemyMoves = possibleEnemyMoves(board, teamColor);
 
         for(ChessMove possibleMove : enemyMoves){
-            if(possibleMove.getEndPosition() == kingPosition){
+            if(possibleMove.getEndPosition().equals(kingPosition)){
                 return true;
             }
         }
@@ -141,8 +138,11 @@ public class ChessGame {
      * @return True if the specified team is in checkmate
      */
     public boolean isInCheckmate(TeamColor teamColor) {
-        this.teamColor = teamColor;
-        throw new RuntimeException("Not implemented");
+
+        ChessPosition kingPosition = kingPosition(teamColor);
+
+        return isInCheck(teamColor) && validMoves(kingPosition).isEmpty();
+
     }
 
     /**
@@ -153,7 +153,6 @@ public class ChessGame {
      * @return True if the specified team is in stalemate, otherwise false
      */
     public boolean isInStalemate(TeamColor teamColor) {
-        this.teamColor = teamColor;
         throw new RuntimeException("Not implemented");
     }
 
