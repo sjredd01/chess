@@ -58,9 +58,12 @@ public class ChessGame {
 
         Collection<ChessMove> possibleMoves;
         possibleMoves = myPiece.pieceMoves(getBoard(), startPosition);
+        TeamColor color = myPiece.getTeamColor();
+
+        possibleMoves.removeIf(move -> willBeInCheck(color, move, myPiece));
 
         if(myPiece.getPieceType() == ChessPiece.PieceType.KING){
-            TeamColor color = myPiece.getTeamColor();
+
             Collection<ChessMove> enemyMoves = possibleEnemyMoves(board, color);
             for(ChessMove enemy : enemyMoves){
                 possibleMoves.removeIf(move -> move.getEndPosition().equals(enemy.getEndPosition()));
@@ -195,6 +198,27 @@ public class ChessGame {
 
         return possibleMove;
 
+    }
+
+    public boolean willBeInCheck(TeamColor teamColor, ChessMove move, ChessPiece myPiece) {
+        this.teamColor = teamColor;
+        
+        board.removePiece(move.getStartPosition());
+        board.addPiece(move.getEndPosition(), myPiece);
+
+        ChessPosition kingPosition = kingPosition(teamColor);
+        Collection<ChessMove> enemyMoves = possibleEnemyMoves(board, teamColor);
+
+        for(ChessMove possibleMove : enemyMoves){
+            if(possibleMove.getEndPosition().equals(kingPosition)){
+                board.removePiece(move.getEndPosition());
+                board.addPiece(move.getStartPosition(), myPiece);
+                return true;
+            }
+        }
+        board.removePiece(move.getEndPosition());
+        board.addPiece(move.getStartPosition(), myPiece);
+        return false;
     }
 
 }
