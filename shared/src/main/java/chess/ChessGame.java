@@ -15,6 +15,7 @@ public class ChessGame {
     private ChessBoard board = new ChessBoard();
     private TeamColor teamColor = TeamColor.WHITE;
     private int moveCount = 0;
+    private boolean used;
 
     public ChessGame() {
         board.resetBoard();
@@ -34,6 +35,7 @@ public class ChessGame {
      */
     public void setTeamTurn(TeamColor team) {
         teamColor = team;
+        used = true;
     }
 
     /**
@@ -88,9 +90,9 @@ public class ChessGame {
             throw new InvalidMoveException();
         }
 
-//        if(moveCount == 0 && teamColor != TeamColor.WHITE){
-//            throw new InvalidMoveException();
-//        }
+        if(moveCount == 0 && !used){
+            throw new InvalidMoveException();
+        }
 
         Collection<ChessMove> valid = validMoves(move.getStartPosition());
 
