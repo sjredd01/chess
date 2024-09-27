@@ -13,11 +13,11 @@ import java.util.List;
 public class ChessGame {
 
     private ChessBoard board = new ChessBoard();
-    private TeamColor teamColor;
+    private TeamColor teamColor = TeamColor.WHITE;
+    private int moveCount = 0;
 
     public ChessGame() {
         board.resetBoard();
-        teamColor = TeamColor.WHITE;
     }
 
     /**
@@ -81,19 +81,20 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
+
         try {
             Collection<ChessMove> valid = validMoves(move.getStartPosition());
         } catch (NullPointerException e) {
             throw new InvalidMoveException();
         }
 
+//        if(moveCount == 0 && teamColor != TeamColor.WHITE){
+//            throw new InvalidMoveException();
+//        }
+
         Collection<ChessMove> valid = validMoves(move.getStartPosition());
 
         if(valid == null){
-            throw new InvalidMoveException();
-        }
-
-        if(board.getPiece(move.getStartPosition()).getTeamColor() != teamColor){
             throw new InvalidMoveException();
         }
 
@@ -119,6 +120,8 @@ public class ChessGame {
             board.addPiece(new ChessPosition(move.getEndPosition().getRow(), move.getEndPosition().getColumn()), board.getPiece(move.getStartPosition()));;
             board.removePiece(move.getStartPosition());
         }
+
+        moveCount ++;
     }
 
     /**
@@ -149,6 +152,8 @@ public class ChessGame {
     public boolean isInCheckmate(TeamColor teamColor) {
 
         ChessPosition kingPosition = kingPosition(teamColor);
+        Collection<ChessMove> test = validMoves(kingPosition);
+        Boolean test1 = isInCheck(teamColor);
 
         return isInCheck(teamColor) && validMoves(kingPosition).isEmpty();
 

@@ -116,7 +116,7 @@ public class ChessPiece {
         int rightPosition = 1;
         int leftPosition = 1;
 
-        while(position < 7){
+        while(position < 8){
             ChessPosition newPosition = new ChessPosition(myPosition.getRow() + position, myPosition.getColumn());
             ChessMove newOne = new ChessMove(myPosition, newPosition, null);
             if((newOne.getEndPosition().getRow() > 8)){
