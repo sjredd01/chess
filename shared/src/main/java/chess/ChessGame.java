@@ -72,6 +72,10 @@ public class ChessGame {
             }
         }
 
+        if(isInCheck(teamColor) && myPiece.getPieceType() != ChessPiece.PieceType.KING){
+            possibleMoves.removeIf(move -> willBeInCheck(color, move, myPiece));
+        }
+
         return possibleMoves;
     }
 
@@ -153,8 +157,14 @@ public class ChessGame {
     public boolean isInCheckmate(TeamColor teamColor) {
 
         ChessPosition kingPosition = kingPosition(teamColor);
-        Collection<ChessMove> test = validMoves(kingPosition);
-        Boolean test1 = isInCheck(teamColor);
+        Collection<ChessPosition> test = teamsPosition(teamColor);
+
+        for(ChessPosition position : test){
+            if(!validMoves(position).isEmpty()){
+                return false;
+            }
+        }
+
 
         return isInCheck(teamColor) && validMoves(kingPosition).isEmpty();
 
@@ -280,5 +290,21 @@ public class ChessGame {
         }
 
         return numberOfPieces;
+    }
+
+    public Collection<ChessPosition> teamsPosition(TeamColor teamColor){
+        Collection<ChessPosition> positions = new ArrayList<>();
+
+        for(int i = 1; i <= 8; i++){
+            for(int k = 1; k <= 8; k ++){
+                if(board.getPiece(new ChessPosition(i,k)) != null){
+                    if((board.getPiece(new ChessPosition(i,k)).getTeamColor() == teamColor)){
+                        positions.add(new ChessPosition(i,k));
+                    }
+                }
+            }
+        }
+
+        return positions;
     }
 }
