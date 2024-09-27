@@ -66,7 +66,6 @@ public class ChessGame {
         possibleMoves.removeIf(move -> willBeInCheck(color, move, myPiece));
 
         if(myPiece.getPieceType() == ChessPiece.PieceType.KING){
-
             Collection<ChessMove> enemyMoves = possibleEnemyMoves(board, color);
             for(ChessMove enemy : enemyMoves){
                 possibleMoves.removeIf(move -> move.getEndPosition().equals(enemy.getEndPosition()));
@@ -90,7 +89,7 @@ public class ChessGame {
             throw new InvalidMoveException();
         }
 
-        if(moveCount == 0 && !used){
+        if(moveCount == 0 && !used && teamColor == TeamColor.BLACK){
             throw new InvalidMoveException();
         }
 
