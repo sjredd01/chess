@@ -1,7 +1,10 @@
 package server;
 
+import com.google.gson.Gson;
 import dataaccess.*;
+import model.GameData;
 import service.AdminService;
+import service.GameService;
 import spark.*;
 
 public class Server {
@@ -11,6 +14,7 @@ public class Server {
     GameDAO gameDAO;
 
     static AdminService adminService;
+    static GameService gameService;
 
     public Server(){
         userDAO = new MemoryUserDAO();
@@ -18,6 +22,7 @@ public class Server {
         gameDAO = new MemoryGameDAO();
 
         adminService = new AdminService(gameDAO, authDAO, userDAO);
+        gameService = new GameService(gameDAO, authDAO, userDAO);
     }
 
     public int run(int desiredPort) {
@@ -38,8 +43,18 @@ public class Server {
         return Spark.port();
     }
 
-    private Object createGame(Request request, Response response) {
+    private Object createGame(Request request, Response response) throws UnauthorizedException, BadRequestException{
+        if(!request.body().contains("\"gameName\":")){
+            throw new BadRequestException("No gameName provided");
+        }
 
+        GameData gameData = new Gson().fromJson(request.body(), GameData.class);
+
+        String authToken = request.headers("authorization");
+        int gameID = gameService.createGame(gameData.gameName(), authToken);
+
+        response.status(200);
+        return "{ \"gameID\": " + gameID + "}";
 
     }
 
