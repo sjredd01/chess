@@ -5,6 +5,7 @@ import chess.ChessGame;
 import dataaccess.*;
 import model.GameData;
 
+import java.util.HashSet;
 import java.util.Random;
 
 public class GameService extends AdminService{
@@ -16,11 +17,11 @@ public class GameService extends AdminService{
         int gameID;
         Random random = new Random();
 
-//        try{
-//            authDAO.getAuth(authToken);
-//        } catch (DataAccessException e) {
-//            throw new UnauthorizedException();
-//        }
+        try{
+            authDAO.getAuth(authToken);
+        } catch (DataAccessException e) {
+            throw new UnauthorizedException();
+        }
 
         do{
             gameID = random.nextInt(10001);
@@ -38,6 +39,9 @@ public class GameService extends AdminService{
 
         return gameID;
 
+    }
 
+    public HashSet<GameData> listGames(){
+        return gameDAO.listGames();
     }
 }

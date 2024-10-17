@@ -3,6 +3,7 @@ import chess.ChessGame;
 import dataaccess.*;
 import model.GameData;
 import model.UserData;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import service.AdminService;
 import model.AuthData;
@@ -11,8 +12,7 @@ import model.AuthData;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ClearTest {
     static GameDAO gameDAO = new MemoryGameDAO();
@@ -26,6 +26,7 @@ public class ClearTest {
 
 
     static final AdminService service = new AdminService(gameDAO, authDAO, userDAO);
+    static final GameService gameService = new GameService(gameDAO, authDAO, userDAO);
 
     @BeforeEach
     void start(){
@@ -34,16 +35,38 @@ public class ClearTest {
         userDAO.clear();
     }
 
-    @Test
-    void testClear() throws DataAccessException {
+    @BeforeEach
+    void setDAO() throws DataAccessException{
         gameDAO.createGame(gameData);
         authDAO.createAuth(authData);
         userDAO.createUser(userData);
+    }
 
+    @Test
+    void testClear(){
         service.clear();
 
         assertThrows(DataAccessException.class, () -> gameDAO.getGame(gameData.gameID()));
         assertThrows(DataAccessException.class, () -> authDAO.getAuth(authData.authToken()));
         assertThrows(DataAccessException.class, () -> userDAO.getUser(userData.username()));
     }
+
+    @Test
+    void createGamePositive(){
+        authDAO.createAuth(authData);
+        var newGame = gameService.createGame(gameData.gameName(), authData.authToken());
+        var games = gameService.listGames();
+
+        assertEquals(1, games.size());
+        assertTrue(gameDAO.gameExists(newGame));
+
+    }
+
+    @Test
+    void createGameNegative() throws UnauthorizedException{
+        authDAO.createAuth(authData);
+        assertThrows(UnauthorizedException.class, () -> gameService.createGame(gameData.gameName(), "wrongAuthToken"));
+
+    }
+
 }
