@@ -27,7 +27,8 @@ public class Server {
 
         // Register your endpoints and handle exceptions here.
         Spark.delete("/db", this::clear);
-        
+        Spark.post("/game", this::createGame);
+
 
 
         //This line initializes the server and can be removed once you have a functioning endpoint 
@@ -35,6 +36,11 @@ public class Server {
 
         Spark.awaitInitialization();
         return Spark.port();
+    }
+
+    private Object createGame(Request request, Response response) {
+
+
     }
 
     private Object clear(Request request, Response response) {
