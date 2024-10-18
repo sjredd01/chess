@@ -27,6 +27,7 @@ public class ClearTest {
 
     static final AdminService service = new AdminService(gameDAO, authDAO, userDAO);
     static final GameService gameService = new GameService(gameDAO, authDAO, userDAO);
+    static final UserService userService = new UserService(gameDAO, authDAO, userDAO);
 
     @BeforeEach
     void start(){
@@ -69,7 +70,32 @@ public class ClearTest {
     void createGameNegative() throws UnauthorizedException{
         authDAO.createAuth(authData);
         assertThrows(UnauthorizedException.class, () -> gameService.createGame(gameData.gameName(), "wrongAuthToken"));
+    }
 
+    @Test
+    void registerNewUserNegative() throws DataAccessException {
+        String username = "TestUser";
+        String password = "TestPassword";
+        String email = "TestEmail";
+
+        String username1 = "TestUser";
+        String password1 = "TestPassword";
+        String email1 = "TestEmail";
+
+        userService.createNewUser(username,password,email);
+
+        assertThrows(RuntimeException.class, () -> userService.createNewUser(username1, password1, email1));
+    }
+
+    @Test
+    void registerNewUserPositive() throws DataAccessException {
+        String username = "TestUser1";
+        String password = "TestPassword";
+        String email = "TestEmail";
+
+        userService.createNewUser(username,password,email);
+
+        assertEquals(username, userDAO.getUser(username).username());
     }
 
 }

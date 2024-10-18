@@ -33,6 +33,7 @@ public class Server {
         // Register your endpoints and handle exceptions here.
         Spark.delete("/db", this::clear);
         Spark.post("/game", this::createGame);
+       // Spark.post("/user", this::registerNewUser);
 
 
 
@@ -42,6 +43,10 @@ public class Server {
         Spark.awaitInitialization();
         return Spark.port();
     }
+
+//    private Object registerNewUser(Request request, Response response) {
+//
+//    }
 
     private Object createGame(Request request, Response response) throws UnauthorizedException, BadRequestException{
         if(!request.body().contains("\"gameName\":")){
