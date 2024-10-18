@@ -180,4 +180,51 @@ public class ClearTest {
 
     }
 
+    @Test
+    void joinGamePositiveWhite() throws DataAccessException{
+        AuthData authData = new AuthData("testAuthToken", "testUsername5");
+        authDAO.createAuth(authData);
+
+
+        GameData gameData = new GameData(555, null, null, "testGameName3", game);
+        gameDAO.createGame(gameData);
+
+        gameService.joinGame("white", 555, "testAuthToken");
+
+        var testWhiteUser = gameDAO.getGame(555).whiteUsername();
+
+        assertEquals("testUsername5", testWhiteUser);
+
+    }
+
+    @Test
+    void joinGamePositiveBlack() throws DataAccessException{
+        AuthData authData = new AuthData("testAuthToken", "testUsername5");
+        authDAO.createAuth(authData);
+
+
+        GameData gameData = new GameData(555, null, null, "testGameName3", game);
+        gameDAO.createGame(gameData);
+
+        gameService.joinGame("black", 555, "testAuthToken");
+
+        var testBlackUser = gameDAO.getGame(555).blackUsername();
+
+        assertEquals("testUsername5", testBlackUser);
+
+    }
+
+    @Test
+    void joinGameNegative() throws DataAccessException{
+        AuthData authData = new AuthData("testAuthToken", "testUsername5");
+        authDAO.createAuth(authData);
+
+
+        GameData gameData = new GameData(555, "whiteUsername", null, "testGameName3", game);
+        gameDAO.createGame(gameData);
+
+        assertThrows(DataAccessException.class, () -> gameService.joinGame("white", 555, "testAuthToken"));
+
+    }
+
 }

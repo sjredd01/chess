@@ -48,7 +48,41 @@ public class GameService extends AdminService{
         }else{
             throw new DataAccessException("Unauthorized");
         }
+    }
+
+    public void joinGame(String playerColor, int gameID, String authToken) throws DataAccessException {
+        if(authDAO.getAuth(authToken) != null){
+           if(gameDAO.gameExists(gameID)){
+              GameData game = gameDAO.getGame(gameID);
+              ChessGame gameToPlay = gameDAO.getGame(gameID).game();
+              String gameName = gameDAO.getGame(gameID).gameName();
+              var blackUser = game.blackUsername();
+              var whiteUser = game.whiteUsername();
+              String caller = authDAO.getAuth(authToken).username();
+
+              if(playerColor.equals("black")){
+                  if(game.blackUsername() != null){
+                      throw new DataAccessException("Already taken");
+                  }
+                  GameData updatedGame = new GameData(gameID, whiteUser, caller, gameName, gameToPlay);
+                  gameDAO.updateGame(updatedGame);
+              }else if(playerColor.equals("white")){
+                   if(game.whiteUsername() != null){
+                       throw new DataAccessException("Already taken");
+                   }
+                   GameData updatedGame = new GameData(gameID, caller, blackUser, gameName, gameToPlay);
+                   gameDAO.updateGame(updatedGame);
+               }else{
+                  throw new DataAccessException("Bad request");
+              }
+
+           }else{
+               throw new DataAccessException("Game does not exist");
+           }
 
 
+        }else{
+            throw new DataAccessException("Unauthorized");
+        }
     }
 }
