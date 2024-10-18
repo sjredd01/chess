@@ -98,4 +98,30 @@ public class ClearTest {
         assertEquals(username, userDAO.getUser(username).username());
     }
 
+    @Test
+    void loginUserPositive() throws DataAccessException{
+        String username = "TestUser1";
+        String password = "TestPassword";
+        String email = "TestEmail";
+
+        var authToken = userService.createNewUser(username,password,email).authToken();
+
+        var checkAuthToken = userService.loginUser(username, password);
+
+        assertEquals(authToken, checkAuthToken);
+    }
+
+    @Test
+    void loginUserNegative() throws DataAccessException{
+        String username = "TestUser1";
+        String password = "TestPassword";
+        String email = "TestEmail";
+        String badPassword = "WrongEmail";
+
+        userService.createNewUser(username,password,email);
+        
+        assertThrows(DataAccessException.class, () -> userService.loginUser(username, badPassword));
+
+    }
+
 }
