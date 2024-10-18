@@ -35,5 +35,9 @@ public class UserService extends AdminService{
 
     }
 
+    public AuthData loginUser(String username, String password){
+
+    }
+
 
 }
