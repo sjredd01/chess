@@ -59,7 +59,7 @@ public class ClearTest {
     void createGamePositive() throws DataAccessException{
         authDAO.createAuth(authData);
         var newGame = gameService.createGame(gameData.gameName(), authData.authToken());
-        var games = gameService.listGames();
+        var games = gameService.listGames(authData.authToken());
 
         assertEquals(1, games.size());
         assertTrue(gameDAO.gameExists(newGame));
@@ -104,11 +104,12 @@ public class ClearTest {
         String password = "TestPassword";
         String email = "TestEmail";
 
-        var authToken = userService.createNewUser(username,password,email).authToken();
+        userService.createNewUser(username,password,email);
 
         var checkAuthToken = userService.loginUser(username, password);
 
-        assertEquals(authToken, checkAuthToken);
+        boolean loggedIn = authDAO.getAuth(checkAuthToken) != null;
+        assertTrue(loggedIn);
     }
 
     @Test
@@ -119,8 +120,35 @@ public class ClearTest {
         String badPassword = "WrongEmail";
 
         userService.createNewUser(username,password,email);
-        
+
         assertThrows(DataAccessException.class, () -> userService.loginUser(username, badPassword));
+
+    }
+
+    @Test
+    void logoutUserPositive() throws DataAccessException{
+        String username = "TestUser1";
+        String password = "TestPassword";
+        String email = "TestEmail";
+
+        userService.createNewUser(username,password,email);
+        var userAuthToken = userService.loginUser(username, password);
+        userService.logoutUser(userAuthToken);
+
+        assertThrows(DataAccessException.class, () -> authDAO.getAuth(userAuthToken));
+    }
+
+    @Test
+    void logoutUserNegative() throws DataAccessException{
+        String username = "TestUser1";
+        String password = "TestPassword";
+        String email = "TestEmail";
+        String badAuthToken = "AjdJuA";
+
+        userService.createNewUser(username,password,email);
+        userService.loginUser(username, password);
+
+        assertThrows(DataAccessException.class, () -> userService.logoutUser(badAuthToken));
 
     }
 

@@ -40,19 +40,28 @@ public class UserService extends AdminService{
 
     }
 
+    public void logoutUser(String authToken) throws DataAccessException {
+        if(authDAO.getAuth(authToken) != null){
+            authDAO.deleteAuth(authToken);
+        }else{
+            throw new DataAccessException("unauthorized");
+        }
+
+    }
+
     public String makeAuthToken(){
         final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         final int STRING_LENGTH = 10;
         SecureRandom random = new SecureRandom();
         StringBuilder newAuthToken = new StringBuilder(STRING_LENGTH);
-        String newAuthTokenString = newAuthToken.toString();
+
 
         for (int i = 0; i < STRING_LENGTH; i++) {
             int randomIndex = random.nextInt(CHARACTERS.length());
             newAuthToken.append(CHARACTERS.charAt(randomIndex));
         }
 
-        return newAuthTokenString;
+        return newAuthToken.toString();
 
     }
 

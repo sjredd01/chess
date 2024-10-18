@@ -41,7 +41,14 @@ public class GameService extends AdminService{
 
     }
 
-    public HashSet<GameData> listGames(){
-        return gameDAO.listGames();
+    public HashSet<GameData> listGames(String authToken) throws DataAccessException {
+
+        if(authDAO.getAuth(authToken) != null){
+            return gameDAO.listGames();
+        }else{
+            throw new DataAccessException("Unauthorized");
+        }
+
+
     }
 }
