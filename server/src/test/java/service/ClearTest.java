@@ -35,15 +35,18 @@ public class ClearTest {
         userDAO.clear();
     }
 
-    @BeforeEach
-    void setDAO() throws DataAccessException{
+//    @BeforeEach
+//    void setDAO() throws DataAccessException{
+//        gameDAO.createGame(gameData);
+//        authDAO.createAuth(authData);
+//        userDAO.createUser(userData);
+//    }
+
+    @Test
+    void testClear() throws DataAccessException{
         gameDAO.createGame(gameData);
         authDAO.createAuth(authData);
         userDAO.createUser(userData);
-    }
-
-    @Test
-    void testClear(){
         service.clear();
 
         assertThrows(DataAccessException.class, () -> gameDAO.getGame(gameData.gameID()));
@@ -52,7 +55,7 @@ public class ClearTest {
     }
 
     @Test
-    void createGamePositive(){
+    void createGamePositive() throws DataAccessException{
         authDAO.createAuth(authData);
         var newGame = gameService.createGame(gameData.gameName(), authData.authToken());
         var games = gameService.listGames();
