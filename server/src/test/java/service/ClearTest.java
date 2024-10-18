@@ -3,13 +3,9 @@ import chess.ChessGame;
 import dataaccess.*;
 import model.GameData;
 import model.UserData;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import service.AdminService;
 import model.AuthData;
 
-
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -19,9 +15,9 @@ public class ClearTest {
     static AuthDAO authDAO = new MemoryAuthDAO();
     static UserDAO userDAO = new MemoryUserDAO();
     static ChessGame game = new ChessGame();
-    static AuthData authData = new AuthData("testAuthToken", "testUsername");;
-    static GameData gameData = new GameData(123, "testWhite", "testBlack", "testGameName", game);;
-    static UserData userData = new UserData("testUsername", "testPassword", "testEmail");;
+    static AuthData authData = new AuthData("testAuthToken", "testUsername");
+    static GameData gameData = new GameData(123, "testWhite", "testBlack", "testGameName", game);
+    static UserData userData = new UserData("testUsername", "testPassword", "testEmail");
 
 
 
@@ -35,13 +31,6 @@ public class ClearTest {
         authDAO.clear();
         userDAO.clear();
     }
-
-//    @BeforeEach
-//    void setDAO() throws DataAccessException{
-//        gameDAO.createGame(gameData);
-//        authDAO.createAuth(authData);
-//        userDAO.createUser(userData);
-//    }
 
     @Test
     void testClear() throws DataAccessException{
@@ -149,6 +138,45 @@ public class ClearTest {
         userService.loginUser(username, password);
 
         assertThrows(DataAccessException.class, () -> userService.logoutUser(badAuthToken));
+
+    }
+
+    @Test
+    void listGamePositive() throws DataAccessException{
+        AuthData authData1 = new AuthData("testAuthToken", "testUsername5");
+        GameData gameData1 = new GameData(13323, "testWhite", "testBlack", "testGameName1", game);
+        GameData gameData2 = new GameData(3, null, "testBlack", "testGameName2", game);
+        GameData gameData3 = new GameData(555, null, null, "testGameName3", game);
+
+        authDAO.createAuth(authData1);
+
+        gameDAO.createGame(gameData1);
+        gameDAO.createGame(gameData2);
+        gameDAO.createGame(gameData3);
+
+        var games = gameService.listGames(authData1.authToken());
+
+        assertEquals(3, games.size());
+        assertTrue(gameDAO.gameExists(3));
+        assertTrue(gameDAO.gameExists(13323));
+        assertTrue(gameDAO.gameExists(555));
+
+    }
+
+    @Test
+    void listGameNegative() throws DataAccessException{
+        AuthData authData1 = new AuthData("testAuthToken", "testUsername5");
+        GameData gameData1 = new GameData(13323, "testWhite", "testBlack", "testGameName1", game);
+        GameData gameData2 = new GameData(3, null, "testBlack", "testGameName2", game);
+        GameData gameData3 = new GameData(555, null, null, "testGameName3", game);
+
+        authDAO.createAuth(authData1);
+
+        gameDAO.createGame(gameData1);
+        gameDAO.createGame(gameData2);
+        gameDAO.createGame(gameData3);
+
+        assertThrows(DataAccessException.class, () ->gameService.listGames("BadAuthToken"));
 
     }
 
