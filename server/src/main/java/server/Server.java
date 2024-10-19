@@ -48,15 +48,21 @@ public class Server {
 
 
         //This line initializes the server and can be removed once you have a functioning endpoint 
-        Spark.init();
+        //Spark.init();
 
         Spark.awaitInitialization();
         return Spark.port();
     }
 
-    private Object joinGame(Request request, Response response) {
+    private Object joinGame(Request request, Response response) throws DataAccessException {
+        String authToken = request.headers("authorization");
+        var gameID = new Gson().fromJson(request.body(), GameData.class).gameID();
+        var playerColor = new Gson().fromJson(request.body(), String.class);
+
+        gameService.joinGame(playerColor, gameID, authToken);
+
         response.status(200);
-        return "{ \"gameID\": ";
+        return "{}";
     }
 
     private Object listGames(Request request, Response response) {
@@ -64,14 +70,28 @@ public class Server {
         return "{ \"gameID\": ";
     }
 
-    private Object logoutUser(Request request, Response response) {
+    private Object logoutUser(Request request, Response response) throws DataAccessException {
+        String authToken = request.headers("authorization");
+        userService.logoutUser(authToken);
+
+
         response.status(200);
-        return "{ \"gameID\": ";
+        return "{}";
     }
 
     private Object loginUser(Request request, Response response) {
-        response.status(200);
-        return "{ \"gameID\": ";
+        var username = new Gson().fromJson(request.body(), UserData.class).username();
+        var password = new Gson().fromJson(request.body(), UserData.class).password();
+
+        try {
+            var authToken = userService.loginUser(username, password);
+            response.status(200);
+            return "{ \"username\": " + username + ", \"authToken\": " + authToken + "}";
+        } catch (DataAccessException e) {
+            response.status(401);
+            return "{ \"message\": \"Error: unauthorized\" }";
+        }
+
     }
 
     private Object registerNewUser(Request request, Response response) throws DataAccessException {
@@ -86,7 +106,7 @@ public class Server {
         return "{ \"username\": " + username + ", \"authToken\": " + authToken + "}";
     }
 
-    private Object createGame(Request request, Response response) throws UnauthorizedException, BadRequestException{
+    private Object createGame(Request request, Response response) throws UnauthorizedException, BadRequestException, DataAccessException {
         if(!request.body().contains("\"gameName\":")){
             throw new BadRequestException("No gameName provided");
         }

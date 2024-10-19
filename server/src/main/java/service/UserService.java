@@ -35,7 +35,7 @@ public class UserService extends AdminService{
 
             return authData.authToken();
         }else{
-            throw new DataAccessException("unauthorized");
+            throw new DataAccessException("");
         }
 
     }
