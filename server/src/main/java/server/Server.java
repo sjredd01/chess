@@ -1,5 +1,6 @@
 package server;
 
+import chess.ChessGame;
 import com.google.gson.Gson;
 import dataaccess.*;
 import model.AuthData;
@@ -9,6 +10,10 @@ import service.AdminService;
 import service.GameService;
 import service.UserService;
 import spark.*;
+import model.LoginRequest;
+import model.CreateGameRequest;
+import model.RegisterRequest;
+import model.JoinGameRequest;
 
 public class Server {
 
@@ -56,13 +61,18 @@ public class Server {
 
     private Object joinGame(Request request, Response response) throws DataAccessException {
         String authToken = request.headers("authorization");
-        var gameID = new Gson().fromJson(request.body(), GameData.class).gameID();
-        var playerColor = new Gson().fromJson(request.body(), String.class);
 
-        gameService.joinGame(playerColor, gameID, authToken);
+        JoinGameRequest joinData = new Gson().fromJson(request.body(), JoinGameRequest.class);
 
-        response.status(200);
-        return "{}";
+        try{
+            gameService.joinGame(joinData.playerColor(), joinData.gameID(), authToken);
+            response.status(200);
+            return "{}";
+        } catch (DataAccessException e) {
+            response.status(403);
+            return "{ \"message\": \"Error: already taken\" }";
+        }
+
     }
 
     private Object listGames(Request request, Response response) {
@@ -83,13 +93,13 @@ public class Server {
     }
 
     private Object loginUser(Request request, Response response) {
-        var username = new Gson().fromJson(request.body(), UserData.class).username();
-        var password = new Gson().fromJson(request.body(), UserData.class).password();
+
+        LoginRequest loginRequest = new Gson().fromJson(request.body(), LoginRequest.class);
 
         try {
-            var authToken = userService.loginUser(username, password);
+            var authToken = userService.loginUser(loginRequest.username(), loginRequest.password());
             response.status(200);
-            return "{ \"username\": " + username + ", \"authToken\": " + authToken + "}";
+            return "{ \"username\": " + loginRequest.username() + ", \"authToken\": " + authToken + "}";
         } catch (DataAccessException e) {
             response.status(401);
             return "{ \"message\": \"Error: unauthorized\" }";
@@ -98,20 +108,18 @@ public class Server {
     }
 
     private Object registerNewUser(Request request, Response response) throws DataAccessException {
+        RegisterRequest registerRequest = new Gson().fromJson(request.body(), RegisterRequest.class);
 
-        var username = new Gson().fromJson(request.body(), UserData.class).username();
-        var password = new Gson().fromJson(request.body(), UserData.class).password();
-        var email = new Gson().fromJson(request.body(), UserData.class).email();
 
-        if(username == null || password == null || email == null){
+        if(registerRequest.username() == null || registerRequest.password() == null || registerRequest.email() == null){
             response.status(400);
             return "{ \"message\": \"Error: bad request\" }";
         }
 
        try{
-           var authToken = userService.createNewUser(username, password, email).authToken();
+           var authToken = userService.createNewUser(registerRequest.username(), registerRequest.password(), registerRequest.email()).authToken();
            response.status(200);
-           return "{ \"username\": " + username + ", \"authToken\": " + authToken + "}";
+           return "{ \"username\": " + registerRequest.username() + ", \"authToken\": " + authToken + "}";
        } catch (RuntimeException e) {
            response.status(403);
            return "{ \"message\": \"Error: already taken\" }";
