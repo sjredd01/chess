@@ -100,10 +100,19 @@ public class Server {
         var password = new Gson().fromJson(request.body(), UserData.class).password();
         var email = new Gson().fromJson(request.body(), UserData.class).email();
 
-        var authToken = userService.createNewUser(username, password, email).authToken();
+       try{
+           var authToken = userService.createNewUser(username, password, email).authToken();
+           response.status(200);
+           return "{ \"username\": " + username + ", \"authToken\": " + authToken + "}";
+       } catch (RuntimeException e) {
+           response.status(403);
+           return "{ \"message\": \"Error: already taken\" }";
+       } catch (Exception e) {
+           response.status(400);
+           return "{ \"message\": \"Error: bad request\" }";
+       }
 
-        response.status(200);
-        return "{ \"username\": " + username + ", \"authToken\": " + authToken + "}";
+
     }
 
     private Object createGame(Request request, Response response) throws UnauthorizedException, BadRequestException, DataAccessException {
