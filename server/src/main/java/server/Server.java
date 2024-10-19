@@ -70,7 +70,7 @@ public class Server {
         return "{ \"gameID\": ";
     }
 
-    private Object logoutUser(Request request, Response response) throws DataAccessException {
+    private Object logoutUser(Request request, Response response) {
         String authToken = request.headers("authorization");
         try{
             userService.logoutUser(authToken);
@@ -115,7 +115,7 @@ public class Server {
        } catch (RuntimeException e) {
            response.status(403);
            return "{ \"message\": \"Error: already taken\" }";
-       } 
+       }
 
 
     }
@@ -126,12 +126,18 @@ public class Server {
         }
 
         GameData gameData = new Gson().fromJson(request.body(), GameData.class);
-
         String authToken = request.headers("authorization");
-        int gameID = gameService.createGame(gameData.gameName(), authToken);
 
-        response.status(200);
-        return "{ \"gameID\": " + gameID + "}";
+       try{
+           int gameID = gameService.createGame(gameData.gameName(), authToken);
+           response.status(200);
+           return "{ \"gameID\": " + gameID + "}";
+       } catch (UnauthorizedException e) {
+           response.status(401);
+           return "{ \"message\": \"Error: unauthorized\" }";
+       }
+
+
 
     }
 
@@ -140,6 +146,7 @@ public class Server {
 
         response.status(200);
         return "{}";
+
     }
 
     public void stop() {

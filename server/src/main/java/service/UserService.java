@@ -19,6 +19,7 @@ public class UserService extends AdminService{
         } catch (DataAccessException e) {
             UserData newUser = new UserData(username, password, email);
             userDAO.createUser(newUser);
+            authDAO.createAuth(new AuthData(newAuthTokenString, username));
             return new AuthData(newAuthTokenString, username);
         }
 
