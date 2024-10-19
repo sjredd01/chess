@@ -189,7 +189,7 @@ public class ClearTest {
         GameData gameData = new GameData(555, null, null, "testGameName3", game);
         gameDAO.createGame(gameData);
 
-        gameService.joinGame("white", 555, "testAuthToken");
+        gameService.joinGame("WHITE", 555, "testAuthToken");
 
         var testWhiteUser = gameDAO.getGame(555).whiteUsername();
 
@@ -206,7 +206,7 @@ public class ClearTest {
         GameData gameData = new GameData(555, null, null, "testGameName3", game);
         gameDAO.createGame(gameData);
 
-        gameService.joinGame("black", 555, "testAuthToken");
+        gameService.joinGame("BLACK", 555, "testAuthToken");
 
         var testBlackUser = gameDAO.getGame(555).blackUsername();
 

@@ -60,13 +60,17 @@ public class GameService extends AdminService{
               var whiteUser = game.whiteUsername();
               String caller = authDAO.getAuth(authToken).username();
 
-              if(playerColor.equals("black")){
+              if(playerColor == null){
+                  throw new DataAccessException("Bad request");
+              }
+
+              if(playerColor.equals("BLACK")){
                   if(game.blackUsername() != null){
                       throw new DataAccessException("Already taken");
                   }
                   GameData updatedGame = new GameData(gameID, whiteUser, caller, gameName, gameToPlay);
                   gameDAO.updateGame(updatedGame);
-              }else if(playerColor.equals("white")){
+              }else if(playerColor.equals("WHITE")){
                    if(game.whiteUsername() != null){
                        throw new DataAccessException("Already taken");
                    }

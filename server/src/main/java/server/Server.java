@@ -2,18 +2,16 @@ package server;
 
 import chess.ChessGame;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
 import dataaccess.*;
-import model.AuthData;
-import model.GameData;
-import model.UserData;
+import model.*;
 import service.AdminService;
 import service.GameService;
 import service.UserService;
 import spark.*;
-import model.LoginRequest;
-import model.CreateGameRequest;
-import model.RegisterRequest;
-import model.JoinGameRequest;
+
+import java.util.*;
 
 public class Server {
 
@@ -69,6 +67,14 @@ public class Server {
             response.status(200);
             return "{}";
         } catch (DataAccessException e) {
+
+            if(Objects.equals(e.getMessage(), "Game does not exist") || Objects.equals(e.getMessage(), "Bad request")){
+                response.status(400);
+                return "{ \"message\": \"Error: bad request\" }";
+            } else if (Objects.equals(e.getMessage(), "Auth Token doesn't exist")) {
+                response.status(401);
+                return "{ \"message\": \"Error: unauthorized\" }";
+            }
             response.status(403);
             return "{ \"message\": \"Error: already taken\" }";
         }
@@ -76,8 +82,41 @@ public class Server {
     }
 
     private Object listGames(Request request, Response response) {
-        response.status(200);
-        return "{ \"gameID\": ";
+        String authToken = request.headers("authorization");
+
+        try{
+            HashSet<GameData> games = gameService.listGames(authToken);
+            HashSet<GameDataList> list = new HashSet<>();
+
+            if(games.isEmpty()){
+                return new Gson().toJson(null);
+            }
+
+            for(GameData game : games){
+                var whiteUser = game.whiteUsername();
+                var blackUser = game.blackUsername();
+                var gameName = game.gameName();
+
+//                if(whiteUser == null){
+//                    whiteUser = "null";
+//                }
+//
+//                if(blackUser == null){
+//                    blackUser = "null";
+//                }
+                GameDataList gameToAdd = new GameDataList(game.gameID(), whiteUser, blackUser, game.gameName());
+                list.add(gameToAdd);
+            }
+            Gson gson = new Gson();
+
+            response.status(200);
+            return "{ \"games\": " + gson.toJsonTree(list) + "}";
+
+        } catch (DataAccessException e) {
+            response.status(401);
+            return "{ \"message\": \"Error: unauthorized\" }";
+        }
+
     }
 
     private Object logoutUser(Request request, Response response) {
