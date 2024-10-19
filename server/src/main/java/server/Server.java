@@ -72,11 +72,14 @@ public class Server {
 
     private Object logoutUser(Request request, Response response) throws DataAccessException {
         String authToken = request.headers("authorization");
-        userService.logoutUser(authToken);
-
-
-        response.status(200);
-        return "{}";
+        try{
+            userService.logoutUser(authToken);
+            response.status(200);
+            return "{}";
+        } catch (DataAccessException e) {
+            response.status(401);
+            return "{ \"message\": \"Error: unauthorized\" }";
+        }
     }
 
     private Object loginUser(Request request, Response response) {
@@ -100,6 +103,11 @@ public class Server {
         var password = new Gson().fromJson(request.body(), UserData.class).password();
         var email = new Gson().fromJson(request.body(), UserData.class).email();
 
+        if(username == null || password == null || email == null){
+            response.status(400);
+            return "{ \"message\": \"Error: bad request\" }";
+        }
+
        try{
            var authToken = userService.createNewUser(username, password, email).authToken();
            response.status(200);
@@ -107,10 +115,7 @@ public class Server {
        } catch (RuntimeException e) {
            response.status(403);
            return "{ \"message\": \"Error: already taken\" }";
-       } catch (Exception e) {
-           response.status(400);
-           return "{ \"message\": \"Error: bad request\" }";
-       }
+       } 
 
 
     }
