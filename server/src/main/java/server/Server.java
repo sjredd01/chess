@@ -2,9 +2,12 @@ package server;
 
 import com.google.gson.Gson;
 import dataaccess.*;
+import model.AuthData;
 import model.GameData;
+import model.UserData;
 import service.AdminService;
 import service.GameService;
+import service.UserService;
 import spark.*;
 
 public class Server {
@@ -15,6 +18,7 @@ public class Server {
 
     static AdminService adminService;
     static GameService gameService;
+    static UserService userService;
 
     public Server(){
         userDAO = new MemoryUserDAO();
@@ -23,6 +27,7 @@ public class Server {
 
         adminService = new AdminService(gameDAO, authDAO, userDAO);
         gameService = new GameService(gameDAO, authDAO, userDAO);
+        userService = new UserService(gameDAO, authDAO, userDAO);
     }
 
     public int run(int desiredPort) {
@@ -32,21 +37,54 @@ public class Server {
 
         // Register your endpoints and handle exceptions here.
         Spark.delete("/db", this::clear);
+        Spark.post("/user", this::registerNewUser);
+        Spark.post("/session", this::loginUser);
+        Spark.delete("/session", this::logoutUser);
+        Spark.get("/game", this::listGames);
         Spark.post("/game", this::createGame);
-       // Spark.post("/user", this::registerNewUser);
+        Spark.put("/game", this::joinGame);
+
 
 
 
         //This line initializes the server and can be removed once you have a functioning endpoint 
-        //Spark.init();
+        Spark.init();
 
         Spark.awaitInitialization();
         return Spark.port();
     }
 
-//    private Object registerNewUser(Request request, Response response) {
-//
-//    }
+    private Object joinGame(Request request, Response response) {
+        response.status(200);
+        return "{ \"gameID\": ";
+    }
+
+    private Object listGames(Request request, Response response) {
+        response.status(200);
+        return "{ \"gameID\": ";
+    }
+
+    private Object logoutUser(Request request, Response response) {
+        response.status(200);
+        return "{ \"gameID\": ";
+    }
+
+    private Object loginUser(Request request, Response response) {
+        response.status(200);
+        return "{ \"gameID\": ";
+    }
+
+    private Object registerNewUser(Request request, Response response) throws DataAccessException {
+
+        var username = new Gson().fromJson(request.body(), UserData.class).username();
+        var password = new Gson().fromJson(request.body(), UserData.class).password();
+        var email = new Gson().fromJson(request.body(), UserData.class).email();
+
+        var authToken = userService.createNewUser(username, password, email).authToken();
+
+        response.status(200);
+        return "{ \"username\": " + username + ", \"authToken\": " + authToken + "}";
+    }
 
     private Object createGame(Request request, Response response) throws UnauthorizedException, BadRequestException{
         if(!request.body().contains("\"gameName\":")){
