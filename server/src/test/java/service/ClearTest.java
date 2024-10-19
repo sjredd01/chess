@@ -21,9 +21,9 @@ public class ClearTest {
 
 
 
-    static final AdminService service = new AdminService(gameDAO, authDAO, userDAO);
-    static final GameService gameService = new GameService(gameDAO, authDAO, userDAO);
-    static final UserService userService = new UserService(gameDAO, authDAO, userDAO);
+    static final AdminService SERVICE = new AdminService(gameDAO, authDAO, userDAO);
+    static final GameService GAMESERVICE = new GameService(gameDAO, authDAO, userDAO);
+    static final UserService USERSERVICE = new UserService(gameDAO, authDAO, userDAO);
 
     @BeforeEach
     void start(){
@@ -37,7 +37,7 @@ public class ClearTest {
         gameDAO.createGame(gameData);
         authDAO.createAuth(authData);
         userDAO.createUser(userData);
-        service.clear();
+        SERVICE.clear();
 
         assertThrows(DataAccessException.class, () -> gameDAO.getGame(gameData.gameID()));
         assertThrows(DataAccessException.class, () -> authDAO.getAuth(authData.authToken()));
@@ -47,8 +47,8 @@ public class ClearTest {
     @Test
     void createGamePositive() throws DataAccessException{
         authDAO.createAuth(authData);
-        var newGame = gameService.createGame(gameData.gameName(), authData.authToken());
-        var games = gameService.listGames(authData.authToken());
+        var newGame = GAMESERVICE.createGame(gameData.gameName(), authData.authToken());
+        var games = GAMESERVICE.listGames(authData.authToken());
 
         assertEquals(1, games.size());
         assertTrue(gameDAO.gameExists(newGame));
@@ -58,7 +58,7 @@ public class ClearTest {
     @Test
     void createGameNegative() throws UnauthorizedException{
         authDAO.createAuth(authData);
-        assertThrows(UnauthorizedException.class, () -> gameService.createGame(gameData.gameName(), "wrongAuthToken"));
+        assertThrows(UnauthorizedException.class, () -> GAMESERVICE.createGame(gameData.gameName(), "wrongAuthToken"));
     }
 
     @Test
@@ -71,9 +71,9 @@ public class ClearTest {
         String password1 = "TestPassword";
         String email1 = "TestEmail";
 
-        userService.createNewUser(username,password,email);
+        USERSERVICE.createNewUser(username,password,email);
 
-        assertThrows(RuntimeException.class, () -> userService.createNewUser(username1, password1, email1));
+        assertThrows(RuntimeException.class, () -> USERSERVICE.createNewUser(username1, password1, email1));
     }
 
     @Test
@@ -82,7 +82,7 @@ public class ClearTest {
         String password = "TestPassword";
         String email = "TestEmail";
 
-        userService.createNewUser(username,password,email);
+        USERSERVICE.createNewUser(username,password,email);
 
         assertEquals(username, userDAO.getUser(username).username());
     }
@@ -93,9 +93,9 @@ public class ClearTest {
         String password = "TestPassword";
         String email = "TestEmail";
 
-        userService.createNewUser(username,password,email);
+        USERSERVICE.createNewUser(username,password,email);
 
-        var checkAuthToken = userService.loginUser(username, password);
+        var checkAuthToken = USERSERVICE.loginUser(username, password);
 
         boolean loggedIn = authDAO.getAuth(checkAuthToken) != null;
         assertTrue(loggedIn);
@@ -108,9 +108,9 @@ public class ClearTest {
         String email = "TestEmail";
         String badPassword = "WrongEmail";
 
-        userService.createNewUser(username,password,email);
+        USERSERVICE.createNewUser(username,password,email);
 
-        assertThrows(DataAccessException.class, () -> userService.loginUser(username, badPassword));
+        assertThrows(DataAccessException.class, () -> USERSERVICE.loginUser(username, badPassword));
 
     }
 
@@ -120,9 +120,9 @@ public class ClearTest {
         String password = "TestPassword";
         String email = "TestEmail";
 
-        userService.createNewUser(username,password,email);
-        var userAuthToken = userService.loginUser(username, password);
-        userService.logoutUser(userAuthToken);
+        USERSERVICE.createNewUser(username,password,email);
+        var userAuthToken = USERSERVICE.loginUser(username, password);
+        USERSERVICE.logoutUser(userAuthToken);
 
         assertThrows(DataAccessException.class, () -> authDAO.getAuth(userAuthToken));
     }
@@ -134,10 +134,10 @@ public class ClearTest {
         String email = "TestEmail";
         String badAuthToken = "AjdJuA";
 
-        userService.createNewUser(username,password,email);
-        userService.loginUser(username, password);
+        USERSERVICE.createNewUser(username,password,email);
+        USERSERVICE.loginUser(username, password);
 
-        assertThrows(DataAccessException.class, () -> userService.logoutUser(badAuthToken));
+        assertThrows(DataAccessException.class, () -> USERSERVICE.logoutUser(badAuthToken));
 
     }
 
@@ -154,7 +154,7 @@ public class ClearTest {
         gameDAO.createGame(gameData2);
         gameDAO.createGame(gameData3);
 
-        var games = gameService.listGames(authData1.authToken());
+        var games = GAMESERVICE.listGames(authData1.authToken());
 
         assertEquals(3, games.size());
         assertTrue(gameDAO.gameExists(3));
@@ -176,7 +176,7 @@ public class ClearTest {
         gameDAO.createGame(gameData2);
         gameDAO.createGame(gameData3);
 
-        assertThrows(DataAccessException.class, () ->gameService.listGames("BadAuthToken"));
+        assertThrows(DataAccessException.class, () -> GAMESERVICE.listGames("BadAuthToken"));
 
     }
 
@@ -189,7 +189,7 @@ public class ClearTest {
         GameData gameData = new GameData(555, null, null, "testGameName3", game);
         gameDAO.createGame(gameData);
 
-        gameService.joinGame("WHITE", 555, "testAuthToken");
+        GAMESERVICE.joinGame("WHITE", 555, "testAuthToken");
 
         var testWhiteUser = gameDAO.getGame(555).whiteUsername();
 
@@ -206,7 +206,7 @@ public class ClearTest {
         GameData gameData = new GameData(555, null, null, "testGameName3", game);
         gameDAO.createGame(gameData);
 
-        gameService.joinGame("BLACK", 555, "testAuthToken");
+        GAMESERVICE.joinGame("BLACK", 555, "testAuthToken");
 
         var testBlackUser = gameDAO.getGame(555).blackUsername();
 
@@ -223,7 +223,7 @@ public class ClearTest {
         GameData gameData = new GameData(555, "whiteUsername", null, "testGameName3", game);
         gameDAO.createGame(gameData);
 
-        assertThrows(DataAccessException.class, () -> gameService.joinGame("white", 555, "testAuthToken"));
+        assertThrows(DataAccessException.class, () -> GAMESERVICE.joinGame("white", 555, "testAuthToken"));
 
     }
 

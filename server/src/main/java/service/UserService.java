@@ -51,15 +51,15 @@ public class UserService extends AdminService{
     }
 
     public String makeAuthToken(){
-        final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        final int STRING_LENGTH = 10;
+        final String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        final int stringLength = 10;
         SecureRandom random = new SecureRandom();
-        StringBuilder newAuthToken = new StringBuilder(STRING_LENGTH);
+        StringBuilder newAuthToken = new StringBuilder(stringLength);
 
 
-        for (int i = 0; i < STRING_LENGTH; i++) {
-            int randomIndex = random.nextInt(CHARACTERS.length());
-            newAuthToken.append(CHARACTERS.charAt(randomIndex));
+        for (int i = 0; i < stringLength; i++) {
+            int randomIndex = random.nextInt(characters.length());
+            newAuthToken.append(characters.charAt(randomIndex));
         }
 
         return newAuthToken.toString();
