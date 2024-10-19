@@ -88,22 +88,10 @@ public class Server {
             HashSet<GameData> games = gameService.listGames(authToken);
             HashSet<GameDataList> list = new HashSet<>();
 
-            if(games.isEmpty()){
-                return new Gson().toJson(null);
-            }
-
             for(GameData game : games){
                 var whiteUser = game.whiteUsername();
                 var blackUser = game.blackUsername();
-                var gameName = game.gameName();
 
-//                if(whiteUser == null){
-//                    whiteUser = "null";
-//                }
-//
-//                if(blackUser == null){
-//                    blackUser = "null";
-//                }
                 GameDataList gameToAdd = new GameDataList(game.gameID(), whiteUser, blackUser, game.gameName());
                 list.add(gameToAdd);
             }
