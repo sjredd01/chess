@@ -231,7 +231,8 @@ public class ChessPiece {
 
 
             }
-            if(blackAttack2.getColumn() <= 8 && board.getPiece(blackAttack2) != null && board.getPiece(blackAttack2).pieceColor == ChessGame.TeamColor.WHITE){
+            if(blackAttack2.getColumn() <= 8 && board.getPiece(blackAttack2) != null &&
+                    board.getPiece(blackAttack2).pieceColor == ChessGame.TeamColor.WHITE){
                 if(blackAttack2.getRow() == 1){
                     possibleMove.add(new ChessMove(myPosition, blackAttack2, PieceType.QUEEN));
                     possibleMove.add(new ChessMove(myPosition, blackAttack2, PieceType.BISHOP));
@@ -242,7 +243,8 @@ public class ChessPiece {
                 }
             }
 
-            if(blackAttack.getColumn() >= 1 && board.getPiece(blackAttack) != null && board.getPiece(blackAttack).pieceColor == ChessGame.TeamColor.WHITE){
+            if(blackAttack.getColumn() >= 1 && board.getPiece(blackAttack) != null &&
+                    board.getPiece(blackAttack).pieceColor == ChessGame.TeamColor.WHITE){
                 if(blackAttack.getRow() == 1){
                     possibleMove.add(new ChessMove(myPosition, blackAttack, PieceType.QUEEN));
                     possibleMove.add(new ChessMove(myPosition, blackAttack, PieceType.BISHOP));
