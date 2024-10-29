@@ -3,6 +3,7 @@ package service;
 import chess.ChessBoard;
 import chess.ChessGame;
 import dataaccess.*;
+import exception.ResponseException;
 import model.GameData;
 
 import java.util.HashSet;
@@ -21,6 +22,8 @@ public class GameService extends AdminService{
             authDAO.getAuth(authToken);
         } catch (DataAccessException e) {
             throw new UnauthorizedException();
+        } catch (ResponseException e) {
+            throw new RuntimeException(e);
         }
 
         do{
@@ -41,7 +44,7 @@ public class GameService extends AdminService{
 
     }
 
-    public HashSet<GameData> listGames(String authToken) throws DataAccessException {
+    public HashSet<GameData> listGames(String authToken) throws DataAccessException, ResponseException {
 
         if(authDAO.getAuth(authToken) != null){
             return gameDAO.listGames();
@@ -50,7 +53,7 @@ public class GameService extends AdminService{
         }
     }
 
-    public void joinGame(String playerColor, int gameID, String authToken) throws DataAccessException {
+    public void joinGame(String playerColor, int gameID, String authToken) throws DataAccessException, ResponseException {
         if(authDAO.getAuth(authToken) != null){
            if(gameDAO.gameExists(gameID)){
               GameData game = gameDAO.getGame(gameID);

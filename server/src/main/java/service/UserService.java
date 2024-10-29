@@ -1,6 +1,7 @@
 package service;
 
 import dataaccess.*;
+import exception.ResponseException;
 import model.AuthData;
 import model.UserData;
 
@@ -11,7 +12,7 @@ public class UserService extends AdminService{
         super(gameDAO, authDAO, userDAO);
     }
 
-    public AuthData createNewUser(String username, String password, String email) throws DataAccessException {
+    public AuthData createNewUser(String username, String password, String email) throws DataAccessException, ResponseException {
         String newAuthTokenString = makeAuthToken();
 
         try{
@@ -27,7 +28,7 @@ public class UserService extends AdminService{
 
     }
 
-    public String loginUser(String username, String password) throws DataAccessException {
+    public String loginUser(String username, String password) throws DataAccessException, ResponseException {
 
         if(userDAO.checkUser(username,password)){
             String newAuthToken = makeAuthToken();
@@ -41,7 +42,7 @@ public class UserService extends AdminService{
 
     }
 
-    public void logoutUser(String authToken) throws DataAccessException {
+    public void logoutUser(String authToken) throws DataAccessException, ResponseException {
         if(authDAO.getAuth(authToken) != null){
             authDAO.deleteAuth(authToken);
         }else{

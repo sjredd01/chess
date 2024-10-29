@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import dataaccess.*;
+import exception.ResponseException;
 import model.*;
 import service.AdminService;
 import service.GameService;
@@ -77,6 +78,8 @@ public class Server {
             }
             response.status(403);
             return "{ \"message\": \"Error: already taken\" }";
+        } catch (ResponseException e) {
+            throw new RuntimeException(e);
         }
 
     }
@@ -100,7 +103,7 @@ public class Server {
             response.status(200);
             return "{ \"games\": " + gson.toJsonTree(list) + "}";
 
-        } catch (DataAccessException e) {
+        } catch (DataAccessException | ResponseException e) {
             response.status(401);
             return "{ \"message\": \"Error: unauthorized\" }";
         }
@@ -113,7 +116,7 @@ public class Server {
             userService.logoutUser(authToken);
             response.status(200);
             return "{}";
-        } catch (DataAccessException e) {
+        } catch (DataAccessException | ResponseException e) {
             response.status(401);
             return "{ \"message\": \"Error: unauthorized\" }";
         }
@@ -130,6 +133,8 @@ public class Server {
         } catch (DataAccessException e) {
             response.status(401);
             return "{ \"message\": \"Error: unauthorized\" }";
+        } catch (ResponseException e) {
+            throw new RuntimeException(e);
         }
 
     }
@@ -147,7 +152,7 @@ public class Server {
            var authToken = userService.createNewUser(registerRequest.username(), registerRequest.password(), registerRequest.email()).authToken();
            response.status(200);
            return "{ \"username\": " + registerRequest.username() + ", \"authToken\": " + authToken + "}";
-       } catch (RuntimeException e) {
+       } catch (RuntimeException | ResponseException e) {
            response.status(403);
            return "{ \"message\": \"Error: already taken\" }";
        }
@@ -176,7 +181,7 @@ public class Server {
 
     }
 
-    private Object clear(Request request, Response response) {
+    private Object clear(Request request, Response response) throws ResponseException {
         adminService.clear();
 
         response.status(200);

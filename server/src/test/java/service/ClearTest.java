@@ -1,6 +1,7 @@
 package service;
 import chess.ChessGame;
 import dataaccess.*;
+import exception.ResponseException;
 import model.GameData;
 import model.UserData;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,14 +27,14 @@ public class ClearTest {
     static final UserService USERSERVICE = new UserService(gameDAO, authDAO, userDAO);
 
     @BeforeEach
-    void start(){
+    void start() throws ResponseException {
         gameDAO.clear();
         authDAO.clear();
         userDAO.clear();
     }
 
     @Test
-    void testClear() throws DataAccessException{
+    void testClear() throws DataAccessException, ResponseException {
         gameDAO.createGame(gameData);
         authDAO.createAuth(authData);
         userDAO.createUser(userData);
@@ -45,7 +46,7 @@ public class ClearTest {
     }
 
     @Test
-    void createGamePositive() throws DataAccessException{
+    void createGamePositive() throws DataAccessException, ResponseException {
         authDAO.createAuth(authData);
         var newGame = GAMESERVICE.createGame(gameData.gameName(), authData.authToken());
         var games = GAMESERVICE.listGames(authData.authToken());
@@ -56,13 +57,13 @@ public class ClearTest {
     }
 
     @Test
-    void createGameNegative() throws UnauthorizedException{
+    void createGameNegative() throws UnauthorizedException, ResponseException {
         authDAO.createAuth(authData);
         assertThrows(UnauthorizedException.class, () -> GAMESERVICE.createGame(gameData.gameName(), "wrongAuthToken"));
     }
 
     @Test
-    void registerNewUserNegative() throws DataAccessException {
+    void registerNewUserNegative() throws DataAccessException, ResponseException {
         String username = "TestUser";
         String password = "TestPassword";
         String email = "TestEmail";
@@ -77,7 +78,7 @@ public class ClearTest {
     }
 
     @Test
-    void registerNewUserPositive() throws DataAccessException {
+    void registerNewUserPositive() throws DataAccessException, ResponseException {
         String username = "TestUser1";
         String password = "TestPassword";
         String email = "TestEmail";
@@ -88,7 +89,7 @@ public class ClearTest {
     }
 
     @Test
-    void loginUserPositive() throws DataAccessException{
+    void loginUserPositive() throws DataAccessException, ResponseException {
         String username = "TestUser1";
         String password = "TestPassword";
         String email = "TestEmail";
@@ -102,7 +103,7 @@ public class ClearTest {
     }
 
     @Test
-    void loginUserNegative() throws DataAccessException{
+    void loginUserNegative() throws DataAccessException, ResponseException {
         String username = "TestUser1";
         String password = "TestPassword";
         String email = "TestEmail";
@@ -115,7 +116,7 @@ public class ClearTest {
     }
 
     @Test
-    void logoutUserPositive() throws DataAccessException{
+    void logoutUserPositive() throws DataAccessException, ResponseException {
         String username = "TestUser1";
         String password = "TestPassword";
         String email = "TestEmail";
@@ -128,7 +129,7 @@ public class ClearTest {
     }
 
     @Test
-    void logoutUserNegative() throws DataAccessException{
+    void logoutUserNegative() throws DataAccessException, ResponseException {
         String username = "TestUser1";
         String password = "TestPassword";
         String email = "TestEmail";
@@ -142,7 +143,7 @@ public class ClearTest {
     }
 
     @Test
-    void listGamePositive() throws DataAccessException{
+    void listGamePositive() throws DataAccessException, ResponseException {
         AuthData authData1 = new AuthData("testAuthToken", "testUsername5");
         GameData gameData1 = new GameData(13323, "testWhite", "testBlack", "testGameName1", game);
         GameData gameData2 = new GameData(3, null, "testBlack", "testGameName2", game);
@@ -164,7 +165,7 @@ public class ClearTest {
     }
 
     @Test
-    void listGameNegative() throws DataAccessException{
+    void listGameNegative() throws DataAccessException, ResponseException {
         AuthData authData1 = new AuthData("testAuthToken", "testUsername5");
         GameData gameData1 = new GameData(13323, "testWhite", "testBlack", "testGameName1", game);
         GameData gameData2 = new GameData(3, null, "testBlack", "testGameName2", game);
@@ -181,7 +182,7 @@ public class ClearTest {
     }
 
     @Test
-    void joinGamePositiveWhite() throws DataAccessException{
+    void joinGamePositiveWhite() throws DataAccessException, ResponseException {
         AuthData authData = new AuthData("testAuthToken", "testUsername5");
         authDAO.createAuth(authData);
 
@@ -198,7 +199,7 @@ public class ClearTest {
     }
 
     @Test
-    void joinGamePositiveBlack() throws DataAccessException{
+    void joinGamePositiveBlack() throws DataAccessException, ResponseException {
         AuthData authData = new AuthData("testAuthToken", "testUsername5");
         authDAO.createAuth(authData);
 
@@ -215,7 +216,7 @@ public class ClearTest {
     }
 
     @Test
-    void joinGameNegative() throws DataAccessException{
+    void joinGameNegative() throws DataAccessException, ResponseException {
         AuthData authData = new AuthData("testAuthToken", "testUsername5");
         authDAO.createAuth(authData);
 

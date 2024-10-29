@@ -3,6 +3,7 @@ package service;
 import dataaccess.AuthDAO;
 import dataaccess.GameDAO;
 import dataaccess.UserDAO;
+import exception.ResponseException;
 
 public class AdminService {
 
@@ -16,7 +17,7 @@ public class AdminService {
         this.userDAO = userDAO;
     }
 
-    public void clear(){
+    public void clear() throws ResponseException {
         gameDAO.clear();
         userDAO.clear();
         authDAO.clear();
