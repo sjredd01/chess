@@ -71,7 +71,7 @@ public class MySQLAuthDAO implements AuthDAO{
     public void createAuth(AuthData authData) throws ResponseException {
         var statement = "INSERT INTO Auth (authToken, username) VALUES (?, ?)";
         executeUpdate(statement, authData.authToken(), authData.username());
-        
+
     }
 
     @Override

@@ -7,6 +7,7 @@ import model.GameData;
 import model.UserData;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class SQLTests {
@@ -36,6 +37,20 @@ public class SQLTests {
         authDAO.clear();
 
         assertThrows(DataAccessException.class, () -> authDAO.getAuth(authData.authToken()));
+    }
+
+    @Test
+    void testAuthCreate() throws ResponseException, DataAccessException {
+        authDAO.createAuth(authData);
+        assertEquals(authData.authToken(), authDAO.getAuth(authData.authToken()).authToken());
+    }
+
+    @Test
+    void testAuthCreateNegative() throws ResponseException {
+        AuthData authData2 = new AuthData(null, authData.username());
+        authDAO.createAuth(authData);
+        assertThrows(DataAccessException.class, () -> authDAO.getAuth(authData2.authToken()));
+
     }
 
 }
