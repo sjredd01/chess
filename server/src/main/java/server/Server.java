@@ -32,7 +32,11 @@ public class Server {
         } catch (ResponseException | DataAccessException e) {
             throw new RuntimeException(e);
         }
-        gameDAO = new MemoryGameDAO();
+        try {
+            gameDAO = new MySQLGameDAO();
+        } catch (ResponseException | DataAccessException e) {
+            throw new RuntimeException(e);
+        }
 
         adminService = new AdminService(gameDAO, authDAO, userDAO);
         gameService = new GameService(gameDAO, authDAO, userDAO);
@@ -74,7 +78,7 @@ public class Server {
             return "{}";
         } catch (DataAccessException e) {
 
-            if(Objects.equals(e.getMessage(), "Game does not exist") || Objects.equals(e.getMessage(), "Bad request")){
+            if(Objects.equals(e.getMessage(), "Game doesn't exist") || Objects.equals(e.getMessage(), "Bad request")){
                 response.status(400);
                 return "{ \"message\": \"Error: bad request\" }";
             } else if (Objects.equals(e.getMessage(), "Auth Token doesn't exist")) {

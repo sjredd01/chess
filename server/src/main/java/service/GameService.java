@@ -26,9 +26,9 @@ public class GameService extends AdminService{
             throw new RuntimeException(e);
         }
 
-        do{
-            gameID = random.nextInt(10001);
-        }while(gameDAO.gameExists(gameID));
+
+        gameID = random.nextInt(10001);
+
 
         try {
             ChessGame game = new ChessGame();

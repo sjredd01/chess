@@ -136,7 +136,7 @@ public class MySQLGameDAO implements GameDAO{
     @Override
     public GameData getGame(int gameId) throws DataAccessException, ResponseException {
         try (var conn = DatabaseManager.getConnection()) {
-            var statement = "SELECT gameID, whiteUsername, blackUsername, gameName, game FROM Game WHERE gameID=?";
+            var statement = "SELECT * FROM Game WHERE gameID=?";
             try (var ps = conn.prepareStatement(statement)) {
                 ps.setInt(1, gameId);
                 try (var rs = ps.executeQuery()) {
