@@ -91,7 +91,6 @@ public class MySQLGameDAO implements GameDAO{
     public void removeGame(int gameID) throws ResponseException {
         var statement = "DELETE FROM game WHERE gameID=?";
         executeUpdate(statement, gameID);
-
     }
 
     @Override
@@ -164,11 +163,17 @@ public class MySQLGameDAO implements GameDAO{
 
     @Override
     public void updateGame(GameData game) throws DataAccessException, ResponseException {
+
+        try{
+            removeGame(game.gameID());
+        } catch (ResponseException e) {
+            throw new RuntimeException(e);
+        }
+
         try {
-           removeGame(game.gameID());
            createGame(game);
         } catch (ResponseException e) {
-            createGame(game);
+            throw new RuntimeException(e);
         }
 
     }
