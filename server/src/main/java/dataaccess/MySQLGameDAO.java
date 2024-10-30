@@ -89,7 +89,7 @@ public class MySQLGameDAO implements GameDAO{
 
 
     public void removeGame(int gameID) throws ResponseException {
-        var statement = "DELETE FROM game WHERE gameID=?";
+        var statement = "DELETE FROM Game WHERE gameID=?";
         executeUpdate(statement, gameID);
     }
 
