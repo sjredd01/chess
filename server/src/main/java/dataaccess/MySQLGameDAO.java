@@ -33,7 +33,7 @@ public class MySQLGameDAO implements GameDAO{
             """
     };
 
-    private void configureDatabase3() throws ResponseException, DataAccessException {
+    public void configureDatabase3() throws ResponseException, DataAccessException {
         DatabaseManager.createDatabase();
         try (var conn3 = DatabaseManager.getConnection()) {
             for (var statement3 : createStatements) {

@@ -50,8 +50,8 @@ public class MySQLUserDAO implements UserDAO{
                         case String p -> ps.setString(i + 1, p);
                         case AuthData p -> ps.setString(i + 1, p.toString());
                         case null -> ps.setNull(i + 1, NULL);
-                        default -> {
-                        }
+
+                        default -> throw new IllegalStateException("Unexpected value: " + param);
                     }
                 }
                 ps.executeUpdate();

@@ -6,7 +6,6 @@ import model.AuthData;
 import java.sql.*;
 
 import static java.sql.Statement.RETURN_GENERATED_KEYS;
-import static java.sql.Types.NULL;
 
 public class MySQLAuthDAO implements AuthDAO{
     public MySQLAuthDAO() throws ResponseException, DataAccessException {
@@ -24,7 +23,7 @@ public class MySQLAuthDAO implements AuthDAO{
             """
     };
 
-    private void configureDatabase2() throws ResponseException, DataAccessException {
+    public void configureDatabase2() throws ResponseException, DataAccessException {
         DatabaseManager.createDatabase();
         try (var conn2 = DatabaseManager.getConnection()) {
             for (var statement2 : createStatements) {
