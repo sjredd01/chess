@@ -2,26 +2,28 @@ package dataaccess;
 
 import exception.ResponseException;
 import model.AuthData;
-import com.google.gson.Gson;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.sql.*;
+import model.UserData;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import org.mindrot.jbcrypt.BCrypt;
 
 import static java.sql.Statement.RETURN_GENERATED_KEYS;
 import static java.sql.Types.NULL;
 
-public class MySQLAuthDAO implements AuthDAO{
-    public MySQLAuthDAO() throws ResponseException, DataAccessException {
+public class MySQLUserDAO implements UserDAO{
+    public void MySQLAuthDAO() throws ResponseException, DataAccessException{
         configureDatabase();
     }
 
     private final String[] createStatements = {
             """
-            CREATE TABLE IF NOT EXISTS  Auth (
-              `authToken` varchar(256) NOT NULL UNIQUE,
+            CREATE TABLE IF NOT EXISTS  User (
               `username` varchar(256) NOT NULL UNIQUE,
-              INDEX(authToken),
-              INDEX(username)
+              `password` varchar(256) NOT NULL,
+              `email` varchar(256) NOT NULL UNIQUE,
+              INDEX(username),
+              INDEX(email)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
             """
     };
@@ -66,57 +68,68 @@ public class MySQLAuthDAO implements AuthDAO{
         }
     }
 
+    private UserData readUser(ResultSet rs) throws SQLException {
+        var userName = rs.getString("username");
+        var password = rs.getString("password");
+        var email = rs.getString("email");
+        return new UserData(userName, password, email);
+    }
 
     @Override
-    public void createAuth(AuthData authData) throws ResponseException {
-        if (authData == null || authData.authToken() == null || authData.username() == null) {
-            throw new ResponseException(400, "authToken and username cannot be null.");
+    public void createUser(UserData user) throws DataAccessException, ResponseException, SQLException {
+        try(var con = DatabaseManager.getConnection()){
+            var statement = "INSERT INTO User (username, password, email) VALUES (?, ?, ?)";
+            String hashedPassword = BCrypt.hashpw(user.password(), BCrypt.gensalt());
+
+            executeUpdate(statement, user.username(), hashedPassword, user.email());
+        }catch (SQLException e){
+            throw new DataAccessException("User already exists: " + user.username());
         }
-        var statement = "INSERT INTO Auth (authToken, username) VALUES (?, ?)";
-        executeUpdate(statement, authData.authToken(), authData.username());
 
     }
 
     @Override
-    public AuthData getAuth(String authToken) throws DataAccessException, ResponseException {
+    public UserData getUser(String username) throws DataAccessException, ResponseException {
         try (var conn = DatabaseManager.getConnection()) {
-            var statement = "SELECT authToken, username FROM Auth WHERE authToken=?";
+            var statement = "SELECT username, password, email FROM User WHERE username=?";
             try (var ps = conn.prepareStatement(statement)) {
-                ps.setString(1, authToken);
+                ps.setString(1, username);
                 try (var rs = ps.executeQuery()) {
                     if (rs.next()) {
-                        return readAuth(rs);
+                        return readUser(rs);
                     }
                 }
             }
         } catch (Exception e) {
             throw new ResponseException(500, String.format("Unable to read data: %s", e.getMessage()));
         }
-        throw new DataAccessException("Auth Token doesn't exist");
-    }
-
-    private AuthData readAuth(ResultSet rs) throws SQLException {
-        var authToken = rs.getString("authToken");
-        var userName = rs.getString("username");
-        return new AuthData(authToken, userName);
+        throw new DataAccessException("Username doesn't exist");
     }
 
     @Override
-    public void deleteAuth(String authToken) throws ResponseException {
-        if (authToken == null || authToken.isEmpty()) {
-            throw new ResponseException(400, "authToken cannot be null or empty.");
+    public boolean checkUser(String username, String password) throws DataAccessException, ResponseException {
+
+        try (var conn = DatabaseManager.getConnection()) {
+            var statement = "SELECT password FROM User WHERE username=?";
+            try (var ps = conn.prepareStatement(statement)) {
+                ps.setString(1, username);
+                try (var rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        String hashedPassword = readUser(rs).password();
+                        return BCrypt.checkpw(password, hashedPassword);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            throw new ResponseException(500, String.format("Unable to read data: %s", e.getMessage()));
         }
-        var statement = "DELETE FROM Auth WHERE authToken = ?";
-        try {
-            executeUpdate(statement, authToken);
-        } catch (ResponseException e) {
-            throw new ResponseException(500, String.format("Unable to delete authToken %s: %s", authToken, e.getMessage()));
-        }
+
+        return false;
     }
 
     @Override
     public void clear() throws ResponseException {
-        var statement = "TRUNCATE TABLE Auth";
+        var statement = "TRUNCATE TABLE User";
         executeUpdate(statement);
 
     }

@@ -7,8 +7,7 @@ import model.GameData;
 import model.UserData;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class SQLTests {
 
@@ -23,7 +22,7 @@ public class SQLTests {
         }
     }
 
-    static UserDAO userDAO = new MemoryUserDAO();
+    static UserDAO userDAO = new MySQLUserDAO();
     static ChessGame game = new ChessGame();
     static AuthData authData = new AuthData("testAuthToken", "testUsername");
     static GameData gameData = new GameData(123, "testWhite", "testBlack", "testGameName", game);
@@ -42,15 +41,44 @@ public class SQLTests {
     @Test
     void testAuthCreate() throws ResponseException, DataAccessException {
         authDAO.createAuth(authData);
+        assertNotNull(authDAO.getAuth(authData.authToken()).authToken());
         assertEquals(authData.authToken(), authDAO.getAuth(authData.authToken()).authToken());
+        assertEquals(authData.username(), authDAO.getAuth(authData.authToken()).username());
+
     }
 
     @Test
     void testAuthCreateNegative() throws ResponseException {
+        authDAO.createAuth(authData);
+        AuthData authData2 = new AuthData(null, "1111");
+        assertThrows(ResponseException.class, () -> authDAO.createAuth(authData2));
+
+    }
+
+    @Test
+    void testAuthGet() throws ResponseException, DataAccessException {
+        authDAO.createAuth(authData);
+        assertEquals(authData.authToken(), authDAO.getAuth(authData.authToken()).authToken());
+    }
+
+    @Test
+    void testAuthGetNegative() throws ResponseException {
         AuthData authData2 = new AuthData(null, authData.username());
         authDAO.createAuth(authData);
         assertThrows(DataAccessException.class, () -> authDAO.getAuth(authData2.authToken()));
+    }
 
+    @Test
+    void testAuthDelete() throws ResponseException, DataAccessException {
+        authDAO.createAuth(authData);
+        authDAO.deleteAuth(authData.authToken());
+        assertThrows(DataAccessException.class, () -> authDAO.getAuth(authData.authToken()));
+    }
+
+    @Test
+    void testAuthDeleteNegative() throws ResponseException {
+        authDAO.createAuth(authData);
+        assertThrows(ResponseException.class, () -> authDAO.deleteAuth(null));
     }
 
 }
