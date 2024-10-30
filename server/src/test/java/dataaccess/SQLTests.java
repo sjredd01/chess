@@ -101,6 +101,28 @@ public class SQLTests {
 
     }
 
+    @Test
+    void testUserNegative() throws ResponseException, DataAccessException, SQLException {
+        userDAO.createUser(userData);
+        UserData userData2 = new UserData(null, "1111", "email");
+
+        assertThrows(DataAccessException.class, () -> userDAO.getUser(userData2.username()));
+
+    }
+
+    @Test
+    void testUserGet() throws ResponseException, DataAccessException, SQLException {
+        userDAO.createUser(userData);
+        assertEquals(userData.username(), userDAO.getUser(userData.username()).username());
+    }
+
+    @Test
+    void testUserGetNegative() throws ResponseException, SQLException, DataAccessException {
+        UserData userData2 = new UserData(null, userData.username(), userData.email());
+        userDAO.createUser(userData);
+        assertThrows(DataAccessException.class, () -> userDAO.getUser(userData2.username()));
+    }
+
 
 
 }
