@@ -182,8 +182,9 @@ public class Server {
        } catch (UnauthorizedException e) {
            response.status(401);
            return "{ \"message\": \"Error: unauthorized\" }";
+       } catch (ResponseException e) {
+           throw new RuntimeException(e);
        }
-
 
 
     }

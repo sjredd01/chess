@@ -183,6 +183,17 @@ public class SQLTests {
         assertThrows(DataAccessException.class, ()-> gameDAO.getGame(1111));
     }
 
+    @Test
+    void testGameExists() throws ResponseException, DataAccessException {
+        gameDAO.createGame(gameData);
+        assertTrue(gameDAO.gameExists(gameData.gameID()));
+    }
+
+    @Test
+    void testGameExistsNegative() throws ResponseException, DataAccessException {
+        assertThrows(DataAccessException.class, () -> gameDAO.gameExists(11111));
+    }
+
 
 
 }

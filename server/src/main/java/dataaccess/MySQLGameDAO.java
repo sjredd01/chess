@@ -130,8 +130,14 @@ public class MySQLGameDAO implements GameDAO{
     }
 
     @Override
-    public boolean gameExists(int gameId) {
-        return false;
+    public boolean gameExists(int gameId) throws ResponseException, DataAccessException {
+        try{
+            GameData game = getGame(gameId);
+        }catch (NullPointerException e){
+            return false;
+        }
+        return true;
+
     }
 
     @Override
