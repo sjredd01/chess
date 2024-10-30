@@ -37,8 +37,8 @@ public class MySQLGameDAO implements GameDAO{
         DatabaseManager.createDatabase();
         try (var conn3 = DatabaseManager.getConnection()) {
             for (var statement3 : createStatements) {
-                try (var preparedStatement = conn3.prepareStatement(statement3)) {
-                    preparedStatement.executeUpdate();
+                try (var preparedStatement3 = conn3.prepareStatement(statement3)) {
+                    preparedStatement3.executeUpdate();
                 }
             }
         } catch (SQLException ex) {

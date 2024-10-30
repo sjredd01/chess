@@ -45,7 +45,6 @@ public class MySQLAuthDAO implements AuthDAO{
                     switch (param2) {
                         case String p -> ps2.setString(i + 1, p);
                         case AuthData p -> ps2.setString(i + 1, p.toString());
-                        case null -> ps2.setNull(i + 1, NULL);
                         default -> {
                         }
                     }
