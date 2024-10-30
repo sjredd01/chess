@@ -4,10 +4,7 @@ import chess.ChessGame;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import exception.ResponseException;
-import model.AuthData;
 import model.GameData;
-import model.UserData;
-import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -49,7 +46,7 @@ public class MySQLGameDAO implements GameDAO{
         }
     }
 
-    private int executeUpdate(String statement, Object... params) throws ResponseException {
+    private void executeUpdate(String statement, Object... params) throws ResponseException {
         try (var conn = DatabaseManager.getConnection()) {
             try (var ps = conn.prepareStatement(statement, RETURN_GENERATED_KEYS)) {
                 for (var i = 0; i < params.length; i++) {
@@ -67,10 +64,9 @@ public class MySQLGameDAO implements GameDAO{
 
                 var rs = ps.getGeneratedKeys();
                 if (rs.next()) {
-                    return rs.getInt(1);
+                    rs.getInt(1);
                 }
 
-                return 0;
             }
         } catch (SQLException | DataAccessException e) {
             throw new ResponseException(500, String.format("unable to update database: %s, %s", statement, e.getMessage()));
@@ -107,6 +103,7 @@ public class MySQLGameDAO implements GameDAO{
 
             executeUpdate(statement, game.gameID(), game.whiteUsername(), game.blackUsername(), game.gameName(), json);
         }catch (SQLException e){
+            int yes = 15;
             throw new DataAccessException("Game already exists: " + game.gameName());
         } catch (ResponseException e) {
             throw new RuntimeException(e);
@@ -143,7 +140,9 @@ public class MySQLGameDAO implements GameDAO{
     }
 
     @Override
-    public void clear() {
+    public void clear() throws ResponseException {
+        var statement = "TRUNCATE TABLE Game";
+        executeUpdate(statement);
 
     }
 }

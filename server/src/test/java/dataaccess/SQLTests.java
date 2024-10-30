@@ -148,8 +148,12 @@ public class SQLTests {
         assertFalse(userDAO.checkUser(userData.username(), "badPassword"));
     }
 
-
-
+    @Test
+    void testGameClear() throws ResponseException, DataAccessException {
+        gameDAO.createGame(gameData);
+        gameDAO.clear();
+        assertThrows(DataAccessException.class, () -> gameDAO.getGame(gameData.gameID()));
+    }
 
     @Test
     void testCreateGame() throws DataAccessException, ResponseException {
@@ -159,11 +163,24 @@ public class SQLTests {
         assertEquals(gameData.blackUsername(), gameDAO.getGame(gameData.gameID()).blackUsername());
     }
 
+    @Test
+    void testCreateGameNegative() throws ResponseException, DataAccessException {
+        gameDAO.createGame(gameData);
+        GameData gameData1 = new GameData(1, "testWhite2", "testBlack2", "testGameName2", null);
+        assertThrows(DataAccessException.class, () -> gameDAO.getGame(12));
+    }
+
 
     @Test
     void testGetGame() throws ResponseException, DataAccessException {
         gameDAO.createGame(gameData);
         assertEquals(gameData.gameID(), gameDAO.getGame(gameData.gameID()).gameID());
+    }
+
+    @Test
+    void testGetGameNegative() throws ResponseException, DataAccessException {
+        gameDAO.createGame(gameData);
+        assertThrows(DataAccessException.class, ()-> gameDAO.getGame(1111));
     }
 
 
