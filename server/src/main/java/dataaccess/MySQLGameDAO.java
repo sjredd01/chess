@@ -56,8 +56,8 @@ public class MySQLGameDAO implements GameDAO{
                         case Integer p -> ps2.setInt(i + 1, p);
                         case JsonElement p -> ps2.setString(i + 1, p.toString());
                         case null -> ps2.setNull(i + 1, NULL);
-                        default -> {
-                        }
+                        default -> throw new IllegalStateException("Unexpected value: " + param);
+
                     }
                 }
                 ps2.executeUpdate();

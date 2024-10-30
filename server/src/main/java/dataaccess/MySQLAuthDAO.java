@@ -23,7 +23,7 @@ public class MySQLAuthDAO implements AuthDAO{
             """
     };
 
-    public void configureDatabase2() throws ResponseException, DataAccessException {
+     void configureDatabase2() throws ResponseException, DataAccessException {
         DatabaseManager.createDatabase();
         try (var conn2 = DatabaseManager.getConnection()) {
             for (var statement2 : createStatements) {
@@ -44,8 +44,7 @@ public class MySQLAuthDAO implements AuthDAO{
                     switch (param2) {
                         case String p -> ps2.setString(i + 1, p);
                         case AuthData p -> ps2.setString(i + 1, p.toString());
-                        default -> {
-                        }
+                        default -> throw new IllegalStateException("Unexpected value: " + param2);
                     }
                 }
                 ps2.executeUpdate();
