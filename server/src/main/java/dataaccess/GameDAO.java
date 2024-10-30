@@ -7,7 +7,7 @@ import java.util.HashSet;
 
 public interface GameDAO {
 
-    HashSet<GameData> listGames();
+    HashSet<GameData> listGames() throws ResponseException;
     void createGame(GameData game) throws DataAccessException, ResponseException;
     GameData getGame(int gameId) throws DataAccessException, ResponseException;
     boolean gameExists(int gameId) throws ResponseException, DataAccessException;

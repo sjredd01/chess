@@ -95,8 +95,26 @@ public class MySQLGameDAO implements GameDAO{
     }
 
     @Override
-    public HashSet<GameData> listGames() {
-        return null;
+    public HashSet<GameData> listGames() throws ResponseException {
+        var result = new HashSet<GameData>();
+
+        try (var conn = DatabaseManager.getConnection()) {
+            var statement = "SELECT * FROM Game";
+            try (var ps = conn.prepareStatement(statement);
+                 var rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    result.add(readGame(rs));
+                }
+            }
+        } catch (SQLException e) {
+            // Log the SQL exception (optional)
+            throw new ResponseException(500, String.format("Database error: %s", e.getMessage()));
+        } catch (Exception e) {
+            // General exception handling
+            throw new ResponseException(500, String.format("Unable to read data: %s", e.getMessage()));
+        }
+
+        return result;
     }
 
     @Override

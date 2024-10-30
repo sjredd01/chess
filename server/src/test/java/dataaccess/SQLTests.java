@@ -6,9 +6,12 @@ import exception.ResponseException;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.HashSet;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -41,7 +44,12 @@ public class SQLTests {
     static GameData gameData = new GameData(123, "testWhite", "testBlack", "testGameName", game);
     static UserData userData = new UserData("testUsername", "testPassword", "testEmail");
 
-
+    @BeforeEach
+    void start() throws ResponseException {
+        userDAO.clear();
+        authDAO.clear();
+        gameDAO.clear();
+    }
     @Test
     void testAuthClear() throws ResponseException {
         authDAO.createAuth(authData);
@@ -214,6 +222,30 @@ public class SQLTests {
 
         assertThrows(NullPointerException.class, () -> gameDAO.updateGame(newGameData));
 
+    }
+
+    @Test
+    void testListGame() throws ResponseException, DataAccessException {
+        GameData gameData1 = new GameData(13323, "testWhite", "testBlack", "testGameName1", game);
+        GameData gameData2 = new GameData(3, null, "testBlack", "testGameName2", game);
+        GameData gameData3 = new GameData(555, null, null, "testGameName3", game);
+
+        gameDAO.createGame(gameData1);
+        gameDAO.createGame(gameData2);
+        gameDAO.createGame(gameData3);
+
+        var games = gameDAO.listGames();
+
+        assertEquals(3, games.size());
+        assertTrue(gameDAO.gameExists(3));
+        assertTrue(gameDAO.gameExists(13323));
+        assertTrue(gameDAO.gameExists(555));
+    }
+    @Test
+
+    void testListGameNegative() throws ResponseException, DataAccessException {
+        HashSet<GameData> games = gameDAO.listGames();
+        assertEquals(0, games.size(), "Expected an empty set from listGames()");
     }
 
 
