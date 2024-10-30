@@ -16,7 +16,7 @@ import static java.sql.Types.NULL;
 public class MySQLGameDAO implements GameDAO{
 
     public MySQLGameDAO() throws ResponseException, DataAccessException{
-        configureDatabase();
+        configureDatabase3();
     }
 
     private final String[] createStatements = {
@@ -29,15 +29,15 @@ public class MySQLGameDAO implements GameDAO{
               `game` TEXT DEFAULT NULL,
               INDEX(gameID),
               INDEX(gameName)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+            )
             """
     };
 
-    private void configureDatabase() throws ResponseException, DataAccessException {
+    private void configureDatabase3() throws ResponseException, DataAccessException {
         DatabaseManager.createDatabase();
-        try (var conn = DatabaseManager.getConnection()) {
-            for (var statement : createStatements) {
-                try (var preparedStatement = conn.prepareStatement(statement)) {
+        try (var conn3 = DatabaseManager.getConnection()) {
+            for (var statement3 : createStatements) {
+                try (var preparedStatement = conn3.prepareStatement(statement3)) {
                     preparedStatement.executeUpdate();
                 }
             }
