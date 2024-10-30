@@ -26,8 +26,12 @@ public class Server {
     static UserService userService;
 
     public Server(){
-        userDAO = new MemoryUserDAO();
-        authDAO = new MemoryAuthDAO();
+        userDAO = new MySQLUserDAO();
+        try {
+            authDAO = new MySQLAuthDAO();
+        } catch (ResponseException | DataAccessException e) {
+            throw new RuntimeException(e);
+        }
         gameDAO = new MemoryGameDAO();
 
         adminService = new AdminService(gameDAO, authDAO, userDAO);
