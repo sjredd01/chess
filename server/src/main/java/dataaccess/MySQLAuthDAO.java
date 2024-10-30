@@ -37,22 +37,22 @@ public class MySQLAuthDAO implements AuthDAO{
         }
     }
 
-    private void executeUpdate(String statement, Object... params) throws ResponseException {
-        try (var conn = DatabaseManager.getConnection()) {
-            try (var ps = conn.prepareStatement(statement, RETURN_GENERATED_KEYS)) {
+    private void executeUpdate2(String statement, Object... params) throws ResponseException {
+        try (var conn2 = DatabaseManager.getConnection()) {
+            try (var ps2 = conn2.prepareStatement(statement, RETURN_GENERATED_KEYS)) {
                 for (var i = 0; i < params.length; i++) {
-                    var param = params[i];
-                    switch (param) {
-                        case String p -> ps.setString(i + 1, p);
-                        case AuthData p -> ps.setString(i + 1, p.toString());
-                        case null -> ps.setNull(i + 1, NULL);
+                    var param2 = params[i];
+                    switch (param2) {
+                        case String p -> ps2.setString(i + 1, p);
+                        case AuthData p -> ps2.setString(i + 1, p.toString());
+                        case null -> ps2.setNull(i + 1, NULL);
                         default -> {
                         }
                     }
                 }
-                ps.executeUpdate();
+                ps2.executeUpdate();
 
-                var rs = ps.getGeneratedKeys();
+                var rs = ps2.getGeneratedKeys();
                 if (rs.next()) {
                     rs.getInt(1);
                 }
@@ -70,7 +70,7 @@ public class MySQLAuthDAO implements AuthDAO{
             throw new ResponseException(400, "authToken and username cannot be null.");
         }
         var statement = "INSERT INTO Auth (authToken, username) VALUES (?, ?)";
-        executeUpdate(statement, authData.authToken(), authData.username());
+        executeUpdate2(statement, authData.authToken(), authData.username());
 
     }
 
@@ -105,7 +105,7 @@ public class MySQLAuthDAO implements AuthDAO{
         }
         var statement = "DELETE FROM Auth WHERE authToken = ?";
         try {
-            executeUpdate(statement, authToken);
+            executeUpdate2(statement, authToken);
         } catch (ResponseException e) {
             throw new ResponseException(500, String.format("Unable to delete authToken %s: %s", authToken, e.getMessage()));
         }
@@ -114,7 +114,7 @@ public class MySQLAuthDAO implements AuthDAO{
     @Override
     public void clear() throws ResponseException {
         var statement = "TRUNCATE TABLE Auth";
-        executeUpdate(statement);
+        executeUpdate2(statement);
 
     }
 }

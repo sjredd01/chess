@@ -14,7 +14,8 @@ public class GameService extends AdminService{
         super(gameDAO, authDAO, userDAO);
     }
 
-    public int createGame(String gameName, String authToken) throws BadRequestException, UnauthorizedException, ResponseException, DataAccessException {
+    public int createGame(String gameName, String authToken)
+            throws BadRequestException, UnauthorizedException, ResponseException, DataAccessException {
         int gameID;
         Random random = new Random();
 
