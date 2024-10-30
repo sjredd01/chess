@@ -38,6 +38,8 @@ public class GameService extends AdminService{
             gameDAO.createGame(new GameData(gameID,  null, null, gameName, game));
         } catch (DataAccessException e) {
             throw new BadRequestException(e.getMessage());
+        } catch (ResponseException e) {
+            throw new RuntimeException(e);
         }
 
         return gameID;

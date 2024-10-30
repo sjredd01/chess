@@ -5,6 +5,7 @@ import exception.ResponseException;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.sql.SQLException;
@@ -13,7 +14,17 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class SQLTests {
 
-    static GameDAO gameDAO = new MemoryGameDAO();
+
+    static GameDAO gameDAO;
+
+    static {
+        try {
+            gameDAO = new MySQLGameDAO();
+        } catch (ResponseException | DataAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     static AuthDAO authDAO;
 
     static {
@@ -135,6 +146,24 @@ public class SQLTests {
         userDAO.createUser(userData);
 
         assertFalse(userDAO.checkUser(userData.username(), "badPassword"));
+    }
+
+
+
+
+    @Test
+    void testCreateGame() throws DataAccessException, ResponseException {
+        gameDAO.createGame(gameData);
+        assertNotNull(gameDAO.getGame(gameData.gameID()));
+        assertEquals(gameData.whiteUsername(), gameDAO.getGame(gameData.gameID()).whiteUsername());
+        assertEquals(gameData.blackUsername(), gameDAO.getGame(gameData.gameID()).blackUsername());
+    }
+
+
+    @Test
+    void testGetGame() throws ResponseException, DataAccessException {
+        gameDAO.createGame(gameData);
+        assertEquals(gameData.gameID(), gameDAO.getGame(gameData.gameID()).gameID());
     }
 
 
