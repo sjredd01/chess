@@ -27,16 +27,8 @@ public class Server {
 
     public Server(){
         userDAO = new MySQLUserDAO();
-        try {
-            authDAO = new MySQLAuthDAO();
-        } catch (ResponseException | DataAccessException e) {
-            throw new RuntimeException(e);
-        }
-        try {
-            gameDAO = new MySQLGameDAO();
-        } catch (ResponseException | DataAccessException e) {
-            throw new RuntimeException(e);
-        }
+        authDAO = new MySQLAuthDAO();
+        gameDAO = new MySQLGameDAO();
 
         adminService = new AdminService(gameDAO, authDAO, userDAO);
         gameService = new GameService(gameDAO, authDAO, userDAO);

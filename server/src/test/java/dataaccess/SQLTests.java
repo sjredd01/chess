@@ -17,27 +17,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class SQLTests {
 
-
-    static GameDAO gameDAO;
-
-    static {
-        try {
-            gameDAO = new MySQLGameDAO();
-        } catch (ResponseException | DataAccessException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    static AuthDAO authDAO;
-
-    static {
-        try {
-            authDAO = new MySQLAuthDAO();
-        } catch (ResponseException | DataAccessException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
+    static GameDAO gameDAO = new MySQLGameDAO();
+    static AuthDAO authDAO = new MySQLAuthDAO();
     static UserDAO userDAO = new MySQLUserDAO();
     static ChessGame game = new ChessGame();
     static AuthData authData = new AuthData("testAuthToken", "testUsername");
