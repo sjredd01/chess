@@ -9,6 +9,8 @@ import model.AuthData;
 
 import org.junit.jupiter.api.Test;
 
+import java.sql.SQLException;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class ClearTest {
@@ -34,7 +36,7 @@ public class ClearTest {
     }
 
     @Test
-    void testClear() throws DataAccessException, ResponseException {
+    void testClear() throws DataAccessException, ResponseException, SQLException {
         gameDAO.createGame(gameData);
         authDAO.createAuth(authData);
         userDAO.createUser(userData);
@@ -63,7 +65,7 @@ public class ClearTest {
     }
 
     @Test
-    void registerNewUserNegative() throws DataAccessException, ResponseException {
+    void registerNewUserNegative() throws DataAccessException, ResponseException, SQLException {
         String username = "TestUser";
         String password = "TestPassword";
         String email = "TestEmail";
@@ -78,7 +80,7 @@ public class ClearTest {
     }
 
     @Test
-    void registerNewUserPositive() throws DataAccessException, ResponseException {
+    void registerNewUserPositive() throws DataAccessException, ResponseException, SQLException {
         String username = "TestUser1";
         String password = "TestPassword";
         String email = "TestEmail";
@@ -89,7 +91,7 @@ public class ClearTest {
     }
 
     @Test
-    void loginUserPositive() throws DataAccessException, ResponseException {
+    void loginUserPositive() throws DataAccessException, ResponseException, SQLException {
         String username = "TestUser1";
         String password = "TestPassword";
         String email = "TestEmail";
@@ -103,7 +105,7 @@ public class ClearTest {
     }
 
     @Test
-    void loginUserNegative() throws DataAccessException, ResponseException {
+    void loginUserNegative() throws DataAccessException, ResponseException, SQLException {
         String username = "TestUser1";
         String password = "TestPassword";
         String email = "TestEmail";
@@ -116,7 +118,7 @@ public class ClearTest {
     }
 
     @Test
-    void logoutUserPositive() throws DataAccessException, ResponseException {
+    void logoutUserPositive() throws DataAccessException, ResponseException, SQLException {
         String username = "TestUser1";
         String password = "TestPassword";
         String email = "TestEmail";
@@ -129,7 +131,7 @@ public class ClearTest {
     }
 
     @Test
-    void logoutUserNegative() throws DataAccessException, ResponseException {
+    void logoutUserNegative() throws DataAccessException, ResponseException, SQLException {
         String username = "TestUser1";
         String password = "TestPassword";
         String email = "TestEmail";

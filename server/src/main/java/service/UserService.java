@@ -6,13 +6,14 @@ import model.AuthData;
 import model.UserData;
 
 import java.security.SecureRandom;
+import java.sql.SQLException;
 
 public class UserService extends AdminService{
     public UserService(GameDAO gameDAO, AuthDAO authDAO, UserDAO userDAO) {
         super(gameDAO, authDAO, userDAO);
     }
 
-    public AuthData createNewUser(String username, String password, String email) throws DataAccessException, ResponseException {
+    public AuthData createNewUser(String username, String password, String email) throws DataAccessException, ResponseException, SQLException {
         String newAuthTokenString = makeAuthToken();
 
         try{

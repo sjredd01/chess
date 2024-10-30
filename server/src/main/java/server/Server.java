@@ -12,6 +12,7 @@ import service.GameService;
 import service.UserService;
 import spark.*;
 
+import java.sql.SQLException;
 import java.util.*;
 
 public class Server {
@@ -155,6 +156,8 @@ public class Server {
        } catch (RuntimeException | ResponseException e) {
            response.status(403);
            return "{ \"message\": \"Error: already taken\" }";
+       } catch (SQLException e) {
+           throw new RuntimeException(e);
        }
 
 
