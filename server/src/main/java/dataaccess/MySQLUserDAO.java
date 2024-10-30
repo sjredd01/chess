@@ -76,7 +76,7 @@ public class MySQLUserDAO implements UserDAO{
 
     @Override
     public void createUser(UserData user) throws DataAccessException, ResponseException {
-        try(var _ = DatabaseManager.getConnection()){
+        try(var conn = DatabaseManager.getConnection()){
             var statement = "INSERT INTO User (username, password, email) VALUES (?, ?, ?)";
             String hashedPassword = BCrypt.hashpw(user.password(), BCrypt.gensalt());
 
