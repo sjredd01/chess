@@ -10,7 +10,7 @@ import static java.sql.Types.NULL;
 
 public class MySQLAuthDAO implements AuthDAO{
     public MySQLAuthDAO() throws ResponseException, DataAccessException {
-        configureDatabase();
+        configureDatabase2();
     }
 
     private final String[] createStatements = {
@@ -24,12 +24,12 @@ public class MySQLAuthDAO implements AuthDAO{
             """
     };
 
-    private void configureDatabase() throws ResponseException, DataAccessException {
+    private void configureDatabase2() throws ResponseException, DataAccessException {
         DatabaseManager.createDatabase();
-        try (var conn = DatabaseManager.getConnection()) {
-            for (var statement : createStatements) {
-                try (var preparedStatement = conn.prepareStatement(statement)) {
-                    preparedStatement.executeUpdate();
+        try (var conn2 = DatabaseManager.getConnection()) {
+            for (var statement2 : createStatements) {
+                try (var preparedStatement2 = conn2.prepareStatement(statement2)) {
+                    preparedStatement2.executeUpdate();
                 }
             }
         } catch (SQLException ex) {

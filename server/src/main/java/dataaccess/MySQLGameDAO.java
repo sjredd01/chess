@@ -48,21 +48,21 @@ public class MySQLGameDAO implements GameDAO{
 
     private void executeUpdate(String statement, Object... params) throws ResponseException {
         try (var conn = DatabaseManager.getConnection()) {
-            try (var ps = conn.prepareStatement(statement, RETURN_GENERATED_KEYS)) {
+            try (var ps2 = conn.prepareStatement(statement, RETURN_GENERATED_KEYS)) {
                 for (var i = 0; i < params.length; i++) {
                     var param = params[i];
                     switch (param) {
-                        case String p -> ps.setString(i + 1, p);
-                        case Integer p -> ps.setInt(i + 1, p);
-                        case JsonElement p -> ps.setString(i + 1, p.toString());
-                        case null -> ps.setNull(i + 1, NULL);
+                        case String p -> ps2.setString(i + 1, p);
+                        case Integer p -> ps2.setInt(i + 1, p);
+                        case JsonElement p -> ps2.setString(i + 1, p.toString());
+                        case null -> ps2.setNull(i + 1, NULL);
                         default -> {
                         }
                     }
                 }
-                ps.executeUpdate();
+                ps2.executeUpdate();
 
-                var rs = ps.getGeneratedKeys();
+                var rs = ps2.getGeneratedKeys();
                 if (rs.next()) {
                     rs.getInt(1);
                 }
