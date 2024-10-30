@@ -11,6 +11,6 @@ public interface GameDAO {
     void createGame(GameData game) throws DataAccessException, ResponseException;
     GameData getGame(int gameId) throws DataAccessException, ResponseException;
     boolean gameExists(int gameId) throws ResponseException, DataAccessException;
-    void updateGame(GameData game) throws DataAccessException;
+    void updateGame(GameData game) throws DataAccessException, ResponseException;
     void clear() throws ResponseException;
 }

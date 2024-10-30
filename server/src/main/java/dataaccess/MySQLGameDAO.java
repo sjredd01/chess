@@ -88,6 +88,11 @@ public class MySQLGameDAO implements GameDAO{
 
 
 
+    public void removeGame(int gameID) throws ResponseException {
+        var statement = "DELETE FROM game WHERE gameID=?";
+        executeUpdate(statement, gameID);
+
+    }
 
     @Override
     public HashSet<GameData> listGames() {
@@ -103,7 +108,6 @@ public class MySQLGameDAO implements GameDAO{
 
             executeUpdate(statement, game.gameID(), game.whiteUsername(), game.blackUsername(), game.gameName(), json);
         }catch (SQLException e){
-            int yes = 15;
             throw new DataAccessException("Game already exists: " + game.gameName());
         } catch (ResponseException e) {
             throw new RuntimeException(e);
@@ -132,7 +136,7 @@ public class MySQLGameDAO implements GameDAO{
     @Override
     public boolean gameExists(int gameId) throws ResponseException, DataAccessException {
         try{
-            GameData game = getGame(gameId);
+            getGame(gameId);
         }catch (NullPointerException e){
             return false;
         }
@@ -141,7 +145,13 @@ public class MySQLGameDAO implements GameDAO{
     }
 
     @Override
-    public void updateGame(GameData game) throws DataAccessException {
+    public void updateGame(GameData game) throws DataAccessException, ResponseException {
+        try {
+           removeGame(game.gameID());
+           createGame(game);
+        } catch (ResponseException e) {
+            createGame(game);
+        }
 
     }
 

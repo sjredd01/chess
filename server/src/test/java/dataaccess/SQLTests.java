@@ -1,11 +1,11 @@
 package dataaccess;
 
 import chess.ChessGame;
+import chess.ChessMove;
 import exception.ResponseException;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.sql.SQLException;
@@ -192,6 +192,28 @@ public class SQLTests {
     @Test
     void testGameExistsNegative() throws ResponseException, DataAccessException {
         assertThrows(DataAccessException.class, () -> gameDAO.gameExists(11111));
+    }
+
+    @Test
+    void testGameUpdate() throws ResponseException, DataAccessException {
+        gameDAO.createGame(gameData);
+        ChessGame newGame = new ChessGame();
+        GameData newGameData = new GameData(gameData.gameID(), gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), newGame);
+
+        gameDAO.updateGame(newGameData);
+
+        assertEquals(newGame.getBoard(), gameDAO.getGame(gameData.gameID()).game().getBoard());
+
+    }
+
+    @Test
+    void testGameUpdateNegative() throws ResponseException, DataAccessException {
+        gameDAO.createGame(gameData);
+
+        GameData newGameData = null;
+
+        assertThrows(NullPointerException.class, () -> gameDAO.updateGame(newGameData));
+
     }
 
 
