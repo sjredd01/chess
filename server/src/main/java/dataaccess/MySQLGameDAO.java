@@ -119,7 +119,7 @@ public class MySQLGameDAO implements GameDAO{
     @Override
     public void createGame(GameData game) throws DataAccessException, ResponseException {
 
-        try(var con = DatabaseManager.getConnection()){
+        try(var _ = DatabaseManager.getConnection()){
             var statement = "INSERT INTO Game (gameID, whiteUsername, blackUsername, gameName, game) VALUES (?, ?, ?, ?, ?)";
             var json = new Gson().toJson(game.game());
 
@@ -162,7 +162,7 @@ public class MySQLGameDAO implements GameDAO{
     }
 
     @Override
-    public void updateGame(GameData game) throws DataAccessException, ResponseException {
+    public void updateGame(GameData game) throws DataAccessException{
 
         try{
             removeGame(game.gameID());

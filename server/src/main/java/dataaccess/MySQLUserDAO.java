@@ -21,7 +21,7 @@ public class MySQLUserDAO implements UserDAO{
             CREATE TABLE IF NOT EXISTS  User (
               `username` varchar(256) NOT NULL UNIQUE,
               `password` varchar(256) NOT NULL,
-              `email` varchar(256) NOT NULL UNIQUE,
+              `email` varchar(256) NOT NULL,
               INDEX(username),
               INDEX(email)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
@@ -41,7 +41,7 @@ public class MySQLUserDAO implements UserDAO{
         }
     }
 
-    private int executeUpdate(String statement, Object... params) throws ResponseException {
+    private void executeUpdate(String statement, Object... params) throws ResponseException {
         try (var conn = DatabaseManager.getConnection()) {
             try (var ps = conn.prepareStatement(statement, RETURN_GENERATED_KEYS)) {
                 for (var i = 0; i < params.length; i++) {
@@ -58,10 +58,9 @@ public class MySQLUserDAO implements UserDAO{
 
                 var rs = ps.getGeneratedKeys();
                 if (rs.next()) {
-                    return rs.getInt(1);
+                    rs.getInt(1);
                 }
 
-                return 0;
             }
         } catch (SQLException | DataAccessException e) {
             throw new ResponseException(500, String.format("unable to update database: %s, %s", statement, e.getMessage()));
@@ -76,8 +75,8 @@ public class MySQLUserDAO implements UserDAO{
     }
 
     @Override
-    public void createUser(UserData user) throws DataAccessException, ResponseException, SQLException {
-        try(var con = DatabaseManager.getConnection()){
+    public void createUser(UserData user) throws DataAccessException, ResponseException {
+        try(var _ = DatabaseManager.getConnection()){
             var statement = "INSERT INTO User (username, password, email) VALUES (?, ?, ?)";
             String hashedPassword = BCrypt.hashpw(user.password(), BCrypt.gensalt());
 

@@ -2,9 +2,7 @@ package dataaccess;
 
 import exception.ResponseException;
 import model.AuthData;
-import com.google.gson.Gson;
-import java.util.ArrayList;
-import java.util.Collection;
+
 import java.sql.*;
 
 import static java.sql.Statement.RETURN_GENERATED_KEYS;
@@ -18,8 +16,8 @@ public class MySQLAuthDAO implements AuthDAO{
     private final String[] createStatements = {
             """
             CREATE TABLE IF NOT EXISTS  Auth (
-              `authToken` varchar(256) NOT NULL UNIQUE,
-              `username` varchar(256) NOT NULL UNIQUE,
+              `authToken` varchar(256) NOT NULL,
+              `username` varchar(256) NOT NULL,
               INDEX(authToken),
               INDEX(username)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
@@ -39,7 +37,7 @@ public class MySQLAuthDAO implements AuthDAO{
         }
     }
 
-    private int executeUpdate(String statement, Object... params) throws ResponseException {
+    private void executeUpdate(String statement, Object... params) throws ResponseException {
         try (var conn = DatabaseManager.getConnection()) {
             try (var ps = conn.prepareStatement(statement, RETURN_GENERATED_KEYS)) {
                 for (var i = 0; i < params.length; i++) {
@@ -56,10 +54,9 @@ public class MySQLAuthDAO implements AuthDAO{
 
                 var rs = ps.getGeneratedKeys();
                 if (rs.next()) {
-                    return rs.getInt(1);
+                    rs.getInt(1);
                 }
 
-                return 0;
             }
         } catch (SQLException | DataAccessException e) {
             throw new ResponseException(500, String.format("unable to update database: %s, %s", statement, e.getMessage()));
