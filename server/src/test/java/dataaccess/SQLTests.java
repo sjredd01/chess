@@ -123,6 +123,20 @@ public class SQLTests {
         assertThrows(DataAccessException.class, () -> userDAO.getUser(userData2.username()));
     }
 
+    @Test
+    void testCheckUser() throws ResponseException, SQLException, DataAccessException {
+        userDAO.createUser(userData);
+
+        assertTrue(userDAO.checkUser(userData.username(), userData.password()));
+    }
+
+    @Test
+    void testCheckUserNegative() throws ResponseException, SQLException, DataAccessException {
+        userDAO.createUser(userData);
+
+        assertFalse(userDAO.checkUser(userData.username(), "badPassword"));
+    }
+
 
 
 }

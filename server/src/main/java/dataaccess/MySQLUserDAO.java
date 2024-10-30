@@ -108,23 +108,9 @@ public class MySQLUserDAO implements UserDAO{
 
     @Override
     public boolean checkUser(String username, String password) throws DataAccessException, ResponseException {
+        UserData user = getUser(username);
 
-        try (var conn = DatabaseManager.getConnection()) {
-            var statement = "SELECT password FROM User WHERE username=?";
-            try (var ps = conn.prepareStatement(statement)) {
-                ps.setString(1, username);
-                try (var rs = ps.executeQuery()) {
-                    if (rs.next()) {
-                        String hashedPassword = readUser(rs).password();
-                        return BCrypt.checkpw(password, hashedPassword);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            throw new ResponseException(500, String.format("Unable to read data: %s", e.getMessage()));
-        }
-
-        return false;
+        return BCrypt.checkpw(password, user.password());
     }
 
     @Override
