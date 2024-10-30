@@ -11,7 +11,7 @@ import static java.sql.Statement.RETURN_GENERATED_KEYS;
 import static java.sql.Types.NULL;
 
 public class MySQLAuthDAO implements AuthDAO{
-    public void MySQLAuthDAO() throws ResponseException, DataAccessException {
+    public MySQLAuthDAO() throws ResponseException, DataAccessException {
         configureDatabase();
     }
 
