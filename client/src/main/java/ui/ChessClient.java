@@ -6,6 +6,7 @@ import java.util.Arrays;
 
 public class ChessClient {
     private final ServerFacade server;
+    private State state = State.LOGGEDOUT;
 
     public ChessClient(String serverURL){
         server = new ServerFacade(serverURL);
@@ -13,6 +14,17 @@ public class ChessClient {
 
 
     public String help(){
+       if(state == State.LOGGEDIN){
+           return """
+                create <NAME>
+                list
+                join <ID> [WHITE|BLACK]
+                observe <ID>
+                logout
+                quit
+                help
+                """;
+       }
         return """
                 register <USERNAME> <PASSWORD> <EMAIL>
                 login <USERNAME> <PASSWORD>
