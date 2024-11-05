@@ -61,7 +61,7 @@ public class ChessClient {
             var newUser = new UserData(username, password, email);
             newUser = server.registerUser(newUser);
 
-            return newUser + " is now registered";
+            return newUser.username() + " is now registered";
         }
 
         throw new ResponseException(400, "Expected <USERNAME> <PASSWORD> <EMAIL>");
