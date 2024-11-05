@@ -1,6 +1,7 @@
 package ui;
 
 import exception.ResponseException;
+import model.AuthData;
 import model.UserData;
 import server.ServerFacade;
 
@@ -46,6 +47,7 @@ public class ChessClient {
             return switch (cmd){
                 case "register" -> registerUser(param);
                 case "login" -> logIn(param);
+                case "quit" -> "quit";
                 default -> help();
             };
         } catch (Exception e) {
@@ -61,19 +63,23 @@ public class ChessClient {
             var newUser = new UserData(username, password, email);
             newUser = server.registerUser(newUser);
 
-            return newUser.username() + " is now registered";
+            return newUser.username() + " is now registered\n";
         }
 
         throw new ResponseException(400, "Expected <USERNAME> <PASSWORD> <EMAIL>");
     }
 
-    private String logIn(String[] param) throws ResponseException {
+    private String logIn(String... param) throws ResponseException {
         if(param.length >= 1){
             state = State.LOGGEDIN;
-            sf = new ServerFacade(serverURL);
-            return "you are signed in ";
+            var username = param[0];
+            var password = param[1];
+            UserData user = new UserData(username, password, null);
+            user = server.logIn(user);
+
+            return user.username() + " is now logged in\n";
         }
 
-        throw new ResponseException(400, "Expected other");
+        throw new ResponseException(400, "Expected <USERNAME> <PASSWORD>");
     }
 }

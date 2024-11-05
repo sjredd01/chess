@@ -23,6 +23,13 @@ public class ServerFacade {
         return this.makeRequest("POST", path, newUser, UserData.class);
     }
 
+    public UserData logIn(UserData user) {
+        var path = "/session";
+        return this.makeRequest("POST", path, user, UserData.class);
+    }
+
+
+
     private <T> T makeRequest(String method, String path, Object request, Class<T> responseClass) {
         try{
             URL url = (new URI(serverURL + path)).toURL();
@@ -63,4 +70,6 @@ public class ServerFacade {
 
         }
     }
+
+
 }

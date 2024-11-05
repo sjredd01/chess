@@ -92,4 +92,22 @@ public class ServerFacadeTests {
         assertThrows(RuntimeException.class, () -> facade.registerUser(new UserData(null, "test", "email")));
     }
 
+    @Test
+    void login(){
+        facade.registerUser(userData);
+
+        assertEquals(userData.username(), facade.logIn(userData).username());
+
+    }
+
+    @Test
+    void loginNegative(){
+        facade.registerUser(userData);
+
+        UserData fakeData = new UserData(userData.username(), "fake", null);
+
+        assertThrows(RuntimeException.class, () -> facade.logIn(fakeData));
+
+    }
+
 }
