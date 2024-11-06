@@ -45,9 +45,9 @@ public class ServerFacade {
         this.makeRequest("POST", path, gameName, String.class);
     }
 
-    public UserData logOut(UserData user){
+    public void logOut(){
         var path = "/session";
-        return this.makeRequest("DELETE", path, user, UserData.class);
+        this.makeRequest("DELETE", path, authToken, String.class);
     }
 
 

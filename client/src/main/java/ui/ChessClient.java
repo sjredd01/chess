@@ -50,12 +50,21 @@ public class ChessClient {
                 case "register" -> registerUser(param);
                 case "create" -> createGame(param);
                 case "login" -> logIn(param);
+                case "logout" -> logOut();
                 case "quit" -> "quit";
                 default -> help();
             };
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private String logOut() {
+
+        server.logOut();
+        state = State.LOGGEDOUT;
+
+        return "Logged out\n";
     }
 
     private String registerUser(String... param) throws ResponseException {
@@ -88,7 +97,6 @@ public class ChessClient {
 
     private String createGame(String ... param) {
         var gameName = param[0];
-
 
         server.createGame(gameName);
 
