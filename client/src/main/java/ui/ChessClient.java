@@ -2,6 +2,7 @@ package ui;
 
 import exception.ResponseException;
 import model.AuthData;
+import model.GameData;
 import model.UserData;
 import server.ServerFacade;
 
@@ -10,6 +11,7 @@ import java.util.Arrays;
 public class ChessClient {
     private final ServerFacade server;
     private final String serverURL;
+    private final String authToken = null;
     private State state = State.LOGGEDOUT;
     private ServerFacade sf;
 
@@ -46,6 +48,7 @@ public class ChessClient {
             var param = Arrays.copyOfRange(token, 1, token.length);
             return switch (cmd){
                 case "register" -> registerUser(param);
+                case "create" -> createGame(param);
                 case "login" -> logIn(param);
                 case "quit" -> "quit";
                 default -> help();
@@ -61,7 +64,7 @@ public class ChessClient {
             var password = param[1];
             var email = param[2];
             var newUser = new UserData(username, password, email);
-            newUser = server.registerUser(newUser);
+            server.registerUser(newUser);
 
             return newUser.username() + " is now registered\n";
         }
@@ -71,15 +74,25 @@ public class ChessClient {
 
     private String logIn(String... param) throws ResponseException {
         if(param.length >= 1){
-            state = State.LOGGEDIN;
             var username = param[0];
             var password = param[1];
             UserData user = new UserData(username, password, null);
-            user = server.logIn(user);
+            server.logIn(user);
+            state = State.LOGGEDIN;
 
             return user.username() + " is now logged in\n";
         }
 
         throw new ResponseException(400, "Expected <USERNAME> <PASSWORD>");
+    }
+
+    private String createGame(String ... param) {
+        var gameName = param[0];
+
+        GameData gameData = new GameData(1, "null", "null", gameName, null);
+
+        server.createGame(gameName);
+
+        return gameData.gameName() + " is now created\n";
     }
 }

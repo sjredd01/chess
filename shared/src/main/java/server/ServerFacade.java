@@ -1,6 +1,8 @@
 package server;
 
 import com.google.gson.Gson;
+import model.AuthData;
+import model.GameData;
 import model.UserData;
 
 import java.io.IOException;
@@ -8,24 +10,44 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.*;
-import java.nio.charset.StandardCharsets;
 
 public class ServerFacade {
 
     private final String serverURL;
+    String authToken;
 
     public ServerFacade(String serverURL) {
         this.serverURL = serverURL;
     }
 
-    public UserData registerUser(UserData newUser) {
-        var path = "/user";
-        return this.makeRequest("POST", path, newUser, UserData.class);
+    private String getAuthToken() {
+        return authToken;
     }
 
-    public UserData logIn(UserData user) {
+    private void setAuthToken(String authToken) {
+        this.authToken = authToken;
+    }
+
+    public AuthData registerUser(UserData newUser) {
+        var path = "/user";
+        setAuthToken(makeRequest("POST", path, newUser, AuthData.class).authToken());
+        return this.makeRequest("POST", path, newUser, AuthData.class);
+    }
+
+    public AuthData logIn(UserData user) {
         var path = "/session";
-        return this.makeRequest("POST", path, user, UserData.class);
+        setAuthToken(makeRequest("POST", path, user, AuthData.class).authToken());
+        return this.makeRequest("POST", path, user, AuthData.class);
+    }
+
+    public void createGame(String gameName){
+        var path = "/game";
+        this.makeRequest("POST", path, gameName, String.class);
+    }
+
+    public UserData logOut(UserData user){
+        var path = "/session";
+        return this.makeRequest("DELETE", path, user, UserData.class);
     }
 
 
