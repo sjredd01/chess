@@ -2,6 +2,7 @@ package server;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import exception.ResponseException;
 import model.AuthData;
 import model.GameData;
 import model.GameDataList;
@@ -12,6 +13,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.*;
+import java.util.HashSet;
 
 public class ServerFacade {
 
@@ -55,10 +57,13 @@ public class ServerFacade {
         return true;
     }
 
-    public Object listGames() {
+    public HashSet<GameDataList> listGames() {
         var path = "/game";
-        var request = makeRequest("GET", path, authToken, Object.class);
-       return request;
+        record listGames(HashSet<GameDataList> games){
+
+        }
+        var request = this.makeRequest("GET", path, null, listGames.class);
+       return request.games;
     }
 
 
@@ -75,8 +80,9 @@ public class ServerFacade {
 
             writeBody(request, http);
             http.connect();
+            throwIfNotSuccessful(http);
             return readBody(http, responseClass);
-        } catch (URISyntaxException | IOException e) {
+        } catch (URISyntaxException | IOException | ResponseException e) {
             throw new RuntimeException(e);
         }
     }
@@ -105,6 +111,17 @@ public class ServerFacade {
             }
 
         }
+    }
+
+    private void throwIfNotSuccessful(HttpURLConnection http) throws IOException, ResponseException {
+        var status = http.getResponseCode();
+        if (!isSuccessful(status)) {
+            throw new ResponseException(status, "failure: " + status);
+        }
+    }
+
+    private boolean isSuccessful(int status) {
+        return status / 100 == 2;
     }
 
 

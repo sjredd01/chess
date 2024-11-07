@@ -112,9 +112,13 @@ public class Server {
                 list.add(gameToAdd);
             }
             Gson gson = new Gson();
+            Map<String, Object> responseMap = new HashMap<>();
+            responseMap.put("games", list);
 
             response.status(200);
-            return "{ \"games\": " + gson.toJsonTree(list) + "}";
+//            return "{ \"games\": " + gson.toJsonTree(list) + "}";
+            return gson.toJson(responseMap);
+
 
         } catch (DataAccessException | ResponseException e) {
             response.status(401);
