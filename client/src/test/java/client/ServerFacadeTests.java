@@ -127,17 +127,27 @@ public class ServerFacadeTests {
     }
 
     @Test
-    void createGame(){
+    void createGame() throws ResponseException, DataAccessException {
         facade.registerUser(userData);
         facade.logIn(userData);
+        int gameID = facade.createGame(gameData);
 
-        assertTrue(facade.createGame(gameData));
+        assertEquals(gameID, gameDAO.getGame(gameID).gameID());
 
     }
 
     @Test
     void createGameNegative(){
         assertThrows(RuntimeException.class,() -> facade.createGame(gameData));
+    }
+
+    @Test
+    void listGame(){
+        facade.registerUser(userData);
+        facade.logIn(userData);
+        facade.createGame(gameData);
+
+        facade.listGames();
     }
 
 }

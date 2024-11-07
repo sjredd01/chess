@@ -1,8 +1,10 @@
 package ui;
 
+import com.google.gson.JsonArray;
 import exception.ResponseException;
 import model.AuthData;
 import model.GameData;
+import model.GameDataList;
 import model.UserData;
 import server.ServerFacade;
 
@@ -51,12 +53,17 @@ public class ChessClient {
                 case "create" -> createGame(param);
                 case "login" -> logIn(param);
                 case "logout" -> logOut();
+                case "list" -> listGames();
                 case "quit" -> "quit";
                 default -> help();
             };
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private String listGames() {
+       return server.listGames().toString();
     }
 
     private String logOut() {
@@ -99,8 +106,8 @@ public class ChessClient {
         var gameName = param[0];
         GameData newGame = new GameData(0, "n", "n", gameName, null);
 
-        server.createGame(newGame);
+        int gameId = server.createGame(newGame);
 
-        return gameName + " is now created\n";
+        return gameId +" with name " + gameName + " is now created\n";
     }
 }

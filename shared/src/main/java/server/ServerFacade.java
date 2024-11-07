@@ -1,8 +1,10 @@
 package server;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import model.AuthData;
 import model.GameData;
+import model.GameDataList;
 import model.UserData;
 
 import java.io.IOException;
@@ -41,16 +43,22 @@ public class ServerFacade {
         return true;
     }
 
-    public boolean createGame(GameData gameName){
+    public int createGame(GameData gameName){
         var path = "/game";
-        this.makeRequest("POST", path, gameName, null);
-        return true;
+        var request = makeRequest("POST", path, gameName, GameData.class);
+        return request.gameID();
     }
 
     public boolean logOut(){
         var path = "/session";
         this.makeRequest("DELETE", path, authToken, null);
         return true;
+    }
+
+    public Object listGames() {
+        var path = "/game";
+        var request = makeRequest("GET", path, authToken, Object.class);
+       return request;
     }
 
 
@@ -98,6 +106,7 @@ public class ServerFacade {
 
         }
     }
+
 
 
 }
