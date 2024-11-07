@@ -97,8 +97,9 @@ public class ChessClient {
 
     private String createGame(String ... param) {
         var gameName = param[0];
+        GameData newGame = new GameData(0, "n", "n", gameName, null);
 
-        server.createGame(gameName);
+        server.createGame(newGame);
 
         return gameName + " is now created\n";
     }

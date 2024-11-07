@@ -131,8 +131,13 @@ public class ServerFacadeTests {
         facade.registerUser(userData);
         facade.logIn(userData);
 
-        assertTrue(facade.createGame("test"));
+        assertTrue(facade.createGame(gameData));
 
+    }
+
+    @Test
+    void createGameNegative(){
+        assertThrows(RuntimeException.class,() -> facade.createGame(gameData));
     }
 
 }

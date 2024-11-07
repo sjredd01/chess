@@ -2,6 +2,7 @@ package server;
 
 import com.google.gson.Gson;
 import model.AuthData;
+import model.GameData;
 import model.UserData;
 
 import java.io.IOException;
@@ -40,9 +41,9 @@ public class ServerFacade {
         return true;
     }
 
-    public boolean createGame(String gameName){
+    public boolean createGame(GameData gameName){
         var path = "/game";
-        this.makeRequest("POST", path, gameName, String.class);
+        this.makeRequest("POST", path, gameName, null);
         return true;
     }
 
