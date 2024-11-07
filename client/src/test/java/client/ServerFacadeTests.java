@@ -10,7 +10,6 @@ import org.junit.jupiter.api.*;
 import server.Server;
 import server.ServerFacade;
 
-import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -96,7 +95,7 @@ public class ServerFacadeTests {
     void login(){
         facade.registerUser(userData);
 
-        assertEquals(userData.username(), facade.logIn(userData).username());
+        assertTrue(facade.logIn(userData));
 
     }
 
@@ -107,6 +106,32 @@ public class ServerFacadeTests {
         UserData fakeData = new UserData(userData.username(), "fake", null);
 
         assertThrows(RuntimeException.class, () -> facade.logIn(fakeData));
+
+    }
+
+    @Test
+    void logout(){
+        facade.registerUser(userData);
+        facade.logIn(userData);
+
+        assertTrue(facade.logOut());
+
+    }
+
+    @Test
+    void logoutNegative(){
+        facade.registerUser(userData);
+        facade.logOut();
+
+        assertThrows(RuntimeException.class, facade::logOut);
+    }
+
+    @Test
+    void createGame(){
+        facade.registerUser(userData);
+        facade.logIn(userData);
+
+        assertTrue(facade.createGame("test"));
 
     }
 

@@ -2,7 +2,6 @@ package server;
 
 import com.google.gson.Gson;
 import model.AuthData;
-import model.GameData;
 import model.UserData;
 
 import java.io.IOException;
@@ -28,26 +27,29 @@ public class ServerFacade {
         this.authToken = authToken;
     }
 
-    public AuthData registerUser(UserData newUser) {
+    public void registerUser(UserData newUser) {
         var path = "/user";
-        setAuthToken(makeRequest("POST", path, newUser, AuthData.class).authToken());
-        return this.makeRequest("POST", path, newUser, AuthData.class);
+        var request = makeRequest("POST", path, newUser, AuthData.class);
+        setAuthToken(request.authToken());
     }
 
-    public AuthData logIn(UserData user) {
+    public boolean logIn(UserData user) {
         var path = "/session";
-        setAuthToken(makeRequest("POST", path, user, AuthData.class).authToken());
-        return this.makeRequest("POST", path, user, AuthData.class);
+        var request = makeRequest("POST", path, user, AuthData.class);
+        setAuthToken(request.authToken());
+        return true;
     }
 
-    public void createGame(String gameName){
+    public boolean createGame(String gameName){
         var path = "/game";
         this.makeRequest("POST", path, gameName, String.class);
+        return true;
     }
 
-    public void logOut(){
+    public boolean logOut(){
         var path = "/session";
-        this.makeRequest("DELETE", path, authToken, String.class);
+        this.makeRequest("DELETE", path, authToken, null);
+        return true;
     }
 
 
@@ -56,15 +58,11 @@ public class ServerFacade {
         try{
             URL url = (new URI(serverURL + path)).toURL();
             HttpURLConnection http = (HttpURLConnection) url.openConnection();
+            if (authToken != null) {
+                http.addRequestProperty("Authorization", authToken);
+            }
             http.setRequestMethod(method);
             http.setDoOutput(true);
-            if (authToken != null && !authToken.isEmpty()) {
-                http.addRequestProperty("Authorization", authToken);
-                writeBody(request, http);
-                http.connect();
-
-                return null;
-            }
 
             writeBody(request, http);
             http.connect();
