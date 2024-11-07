@@ -3,10 +3,7 @@ package server;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import exception.ResponseException;
-import model.AuthData;
-import model.GameData;
-import model.GameDataList;
-import model.UserData;
+import model.*;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -64,6 +61,13 @@ public class ServerFacade {
         }
         var request = this.makeRequest("GET", path, null, listGames.class);
        return request.games;
+    }
+
+    public void joinGame(int gameID, String teamColor) {
+        var path = "/game";
+        JoinGameRequest joinRequest = new JoinGameRequest(teamColor, gameID);
+        this.makeRequest("PUT", path, joinRequest, null );
+
     }
 
 

@@ -53,6 +53,7 @@ public class ChessClient {
                 case "register" -> registerUser(param);
                 case "create" -> createGame(param);
                 case "login" -> logIn(param);
+                case "join" -> joinGame(param);
                 case "logout" -> logOut();
                 case "list" -> listGames();
                 case "quit" -> "quit";
@@ -61,6 +62,15 @@ public class ChessClient {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private String joinGame(String[] param) {
+        var gameID = param[0];
+        var teamColor = param[1];
+
+        server.joinGame(Integer.parseInt(gameID), teamColor);
+
+        return "joined game " + gameID;
     }
 
     private String listGames() {
