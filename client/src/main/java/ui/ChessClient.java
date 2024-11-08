@@ -66,7 +66,7 @@ public class ChessClient {
 
     private String joinGame(String[] param) {
         var gameID = param[0];
-        var teamColor = param[1];
+        var teamColor = param[1].toUpperCase();
 
         server.joinGame(Integer.parseInt(gameID), teamColor);
 

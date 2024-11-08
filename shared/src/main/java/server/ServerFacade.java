@@ -70,8 +70,6 @@ public class ServerFacade {
 
     }
 
-
-
     private <T> T makeRequest(String method, String path, Object request, Class<T> responseClass) {
         try{
             URL url = (new URI(serverURL + path)).toURL();
