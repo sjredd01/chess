@@ -15,9 +15,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 
 public class ServerFacadeTests {
-    private static final String SERVERURL = "http://localhost:8080";
     private static Server server;
-    private static final ServerFacade FACADE = new ServerFacade(SERVERURL);
+    private static ServerFacade FACADE = null;
     static GameDAO gameDAO1;
 
     static {
@@ -58,6 +57,9 @@ public class ServerFacadeTests {
     public static void init() {
         server = new Server();
         var port = server.run(0);
+        String SERVERURL = "http://localhost:" + port;
+        FACADE = new ServerFacade(SERVERURL);
+
         System.out.println("Started test HTTP server on " + port);
     }
 
