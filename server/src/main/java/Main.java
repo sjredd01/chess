@@ -8,7 +8,7 @@ public class Main {
         var port = 8080;
         Server server = new Server();
 
-        server.run(port);
+        var newport = server.run(0);
 
     }
 }

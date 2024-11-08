@@ -15,9 +15,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 
 public class ServerFacadeTests {
-    private static final String serverURL = "http://localhost:8080";
+    private static final String SERVERURL = "http://localhost:8080";
     private static Server server;
-    private static final ServerFacade FACADE = new ServerFacade(serverURL);
+    private static final ServerFacade FACADE = new ServerFacade(SERVERURL);
     static GameDAO gameDAO1;
 
     static {
