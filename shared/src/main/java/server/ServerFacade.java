@@ -56,10 +56,10 @@ public class ServerFacade {
 
     public HashSet<GameDataList> listGames() {
         var path = "/game";
-        record listGames(HashSet<GameDataList> games){
+        record ListGames(HashSet<GameDataList> games){
 
         }
-        var request = this.makeRequest("GET", path, null, listGames.class);
+        var request = this.makeRequest("GET", path, null, ListGames.class);
        return request.games;
     }
 

@@ -15,34 +15,34 @@ import static org.junit.jupiter.api.Assertions.*;
 
 
 public class ServerFacadeTests {
-    private static final String serverUrl = "http://localhost:8080";
+    private static final String serverURL = "http://localhost:8080";
     private static Server server;
-    private static final ServerFacade facade = new ServerFacade(serverUrl);
-    static GameDAO gameDAO;
+    private static final ServerFacade FACADE = new ServerFacade(serverURL);
+    static GameDAO gameDAO1;
 
     static {
         try {
-            gameDAO = new MySQLGameDAO();
+            gameDAO1 = new MySQLGameDAO();
         } catch (ResponseException | DataAccessException e) {
             throw new RuntimeException(e);
         }
     }
 
-    static AuthDAO authDAO;
+    static AuthDAO authDAO1;
 
     static {
         try {
-            authDAO = new MySQLAuthDAO();
+            authDAO1 = new MySQLAuthDAO();
         } catch (ResponseException | DataAccessException e) {
             throw new RuntimeException(e);
         }
     }
 
-    static UserDAO userDAO;
+    static UserDAO userDAO1;
 
     static {
         try {
-            userDAO = new MySQLUserDAO();
+            userDAO1 = new MySQLUserDAO();
         } catch (ResponseException | DataAccessException e) {
             throw new RuntimeException(e);
         }
@@ -68,9 +68,9 @@ public class ServerFacadeTests {
 
     @BeforeEach
     void clear() throws ResponseException {
-        gameDAO.clear();
-        authDAO.clear();
-        userDAO.clear();
+        gameDAO1.clear();
+        authDAO1.clear();
+        userDAO1.clear();
     }
 
 
@@ -81,99 +81,99 @@ public class ServerFacadeTests {
 
     @Test
     void register() throws ResponseException, DataAccessException {
-        facade.registerUser(userData);
+        FACADE.registerUser(userData);
 
-        assertEquals(userDAO.getUser(userData.username()).username(), userData.username());
+        assertEquals(userDAO1.getUser(userData.username()).username(), userData.username());
     }
 
     @Test
     void registerNegative(){
-        assertThrows(RuntimeException.class, () -> facade.registerUser(new UserData(null, "test", "email")));
+        assertThrows(RuntimeException.class, () -> FACADE.registerUser(new UserData(null, "test", "email")));
     }
 
     @Test
     void login(){
-        facade.registerUser(userData);
+        FACADE.registerUser(userData);
 
-        assertTrue(facade.logIn(userData));
+        assertTrue(FACADE.logIn(userData));
 
     }
 
     @Test
     void loginNegative(){
-        facade.registerUser(userData);
+        FACADE.registerUser(userData);
 
         UserData fakeData = new UserData(userData.username(), "fake", null);
 
-        assertThrows(RuntimeException.class, () -> facade.logIn(fakeData));
+        assertThrows(RuntimeException.class, () -> FACADE.logIn(fakeData));
 
     }
 
     @Test
     void logout(){
-        facade.registerUser(userData);
-        facade.logIn(userData);
+        FACADE.registerUser(userData);
+        FACADE.logIn(userData);
 
-        assertTrue(facade.logOut());
+        assertTrue(FACADE.logOut());
 
     }
 
     @Test
     void logoutNegative(){
-        facade.registerUser(userData);
-        facade.logOut();
+        FACADE.registerUser(userData);
+        FACADE.logOut();
 
-        assertThrows(RuntimeException.class, facade::logOut);
+        assertThrows(RuntimeException.class, FACADE::logOut);
     }
 
     @Test
     void createGame() throws ResponseException, DataAccessException {
-        facade.registerUser(userData);
-        facade.logIn(userData);
-        int gameID = facade.createGame(gameData);
+        FACADE.registerUser(userData);
+        FACADE.logIn(userData);
+        int gameID = FACADE.createGame(gameData);
 
-        assertEquals(gameID, gameDAO.getGame(gameID).gameID());
+        assertEquals(gameID, gameDAO1.getGame(gameID).gameID());
 
     }
 
     @Test
     void createGameNegative(){
-        assertThrows(RuntimeException.class,() -> facade.createGame(gameData));
+        assertThrows(RuntimeException.class,() -> FACADE.createGame(gameData));
     }
 
     @Test
     void listGame(){
-        facade.registerUser(userData);
-        facade.logIn(userData);
-        facade.createGame(gameData);
+        FACADE.registerUser(userData);
+        FACADE.logIn(userData);
+        FACADE.createGame(gameData);
 
-        assertEquals(1,facade.listGames().size());
+        assertEquals(1, FACADE.listGames().size());
     }
 
     @Test
     void listGameNegative(){
-        assertThrows(RuntimeException.class, () -> facade.createGame(gameData));
+        assertThrows(RuntimeException.class, () -> FACADE.createGame(gameData));
     }
 
     @Test
     void joinGame() throws ResponseException, DataAccessException {
-        facade.registerUser(userData);
-        facade.logIn(userData);
-        int gameID = facade.createGame(gameData);
+        FACADE.registerUser(userData);
+        FACADE.logIn(userData);
+        int gameID = FACADE.createGame(gameData);
 
-        facade.joinGame(gameID, "WHITE");
+        FACADE.joinGame(gameID, "WHITE");
 
-        assertEquals(gameDAO.getGame(gameID).whiteUsername(), userData.username());
+        assertEquals(gameDAO1.getGame(gameID).whiteUsername(), userData.username());
 
     }
 
     @Test
     void joinGameNegative(){
-        facade.registerUser(userData);
-        facade.logIn(userData);
-        int gameID = facade.createGame(gameData);
+        FACADE.registerUser(userData);
+        FACADE.logIn(userData);
+        int gameID = FACADE.createGame(gameData);
 
-        assertThrows(RuntimeException.class, () -> facade.joinGame(gameID, "GREEN"));
+        assertThrows(RuntimeException.class, () -> FACADE.joinGame(gameID, "GREEN"));
 
     }
 
