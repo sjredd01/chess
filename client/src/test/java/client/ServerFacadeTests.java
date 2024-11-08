@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class ServerFacadeTests {
     private static Server server;
-    private static ServerFacade FACADE = null;
+    private static ServerFacade facade = null;
     static GameDAO gameDAO1;
 
     static {
@@ -57,8 +57,8 @@ public class ServerFacadeTests {
     public static void init() {
         server = new Server();
         var port = server.run(0);
-        String SERVERURL = "http://localhost:" + port;
-        FACADE = new ServerFacade(SERVERURL);
+        String serverUrl = "http://localhost:" + port;
+        facade = new ServerFacade(serverUrl);
 
         System.out.println("Started test HTTP server on " + port);
     }
@@ -83,56 +83,56 @@ public class ServerFacadeTests {
 
     @Test
     void register() throws ResponseException, DataAccessException {
-        FACADE.registerUser(userData);
+        facade.registerUser(userData);
 
         assertEquals(userDAO1.getUser(userData.username()).username(), userData.username());
     }
 
     @Test
     void registerNegative(){
-        assertThrows(RuntimeException.class, () -> FACADE.registerUser(new UserData(null, "test", "email")));
+        assertThrows(RuntimeException.class, () -> facade.registerUser(new UserData(null, "test", "email")));
     }
 
     @Test
     void login(){
-        FACADE.registerUser(userData);
+        facade.registerUser(userData);
 
-        assertTrue(FACADE.logIn(userData));
+        assertTrue(facade.logIn(userData));
 
     }
 
     @Test
     void loginNegative(){
-        FACADE.registerUser(userData);
+        facade.registerUser(userData);
 
         UserData fakeData = new UserData(userData.username(), "fake", null);
 
-        assertThrows(RuntimeException.class, () -> FACADE.logIn(fakeData));
+        assertThrows(RuntimeException.class, () -> facade.logIn(fakeData));
 
     }
 
     @Test
     void logout(){
-        FACADE.registerUser(userData);
-        FACADE.logIn(userData);
+        facade.registerUser(userData);
+        facade.logIn(userData);
 
-        assertTrue(FACADE.logOut());
+        assertTrue(facade.logOut());
 
     }
 
     @Test
     void logoutNegative(){
-        FACADE.registerUser(userData);
-        FACADE.logOut();
+        facade.registerUser(userData);
+        facade.logOut();
 
-        assertThrows(RuntimeException.class, FACADE::logOut);
+        assertThrows(RuntimeException.class, facade::logOut);
     }
 
     @Test
     void createGame() throws ResponseException, DataAccessException {
-        FACADE.registerUser(userData);
-        FACADE.logIn(userData);
-        int gameID = FACADE.createGame(gameData);
+        facade.registerUser(userData);
+        facade.logIn(userData);
+        int gameID = facade.createGame(gameData);
 
         assertEquals(gameID, gameDAO1.getGame(gameID).gameID());
 
@@ -140,30 +140,30 @@ public class ServerFacadeTests {
 
     @Test
     void createGameNegative(){
-        assertThrows(RuntimeException.class,() -> FACADE.createGame(gameData));
+        assertThrows(RuntimeException.class,() -> facade.createGame(gameData));
     }
 
     @Test
     void listGame(){
-        FACADE.registerUser(userData);
-        FACADE.logIn(userData);
-        FACADE.createGame(gameData);
+        facade.registerUser(userData);
+        facade.logIn(userData);
+        facade.createGame(gameData);
 
-        assertEquals(1, FACADE.listGames().size());
+        assertEquals(1, facade.listGames().size());
     }
 
     @Test
     void listGameNegative(){
-        assertThrows(RuntimeException.class, () -> FACADE.createGame(gameData));
+        assertThrows(RuntimeException.class, () -> facade.createGame(gameData));
     }
 
     @Test
     void joinGame() throws ResponseException, DataAccessException {
-        FACADE.registerUser(userData);
-        FACADE.logIn(userData);
-        int gameID = FACADE.createGame(gameData);
+        facade.registerUser(userData);
+        facade.logIn(userData);
+        int gameID = facade.createGame(gameData);
 
-        FACADE.joinGame(gameID, "WHITE");
+        facade.joinGame(gameID, "WHITE");
 
         assertEquals(gameDAO1.getGame(gameID).whiteUsername(), userData.username());
 
@@ -171,11 +171,11 @@ public class ServerFacadeTests {
 
     @Test
     void joinGameNegative(){
-        FACADE.registerUser(userData);
-        FACADE.logIn(userData);
-        int gameID = FACADE.createGame(gameData);
+        facade.registerUser(userData);
+        facade.logIn(userData);
+        int gameID = facade.createGame(gameData);
 
-        assertThrows(RuntimeException.class, () -> FACADE.joinGame(gameID, "GREEN"));
+        assertThrows(RuntimeException.class, () -> facade.joinGame(gameID, "GREEN"));
 
     }
 
