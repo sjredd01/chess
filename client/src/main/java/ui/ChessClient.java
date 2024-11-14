@@ -10,6 +10,7 @@ import model.UserData;
 import server.ServerFacade;
 
 import java.util.Arrays;
+import java.util.HashSet;
 
 public class ChessClient {
     private final ServerFacade server;
@@ -17,6 +18,7 @@ public class ChessClient {
     private final String authToken = null;
     private State state = State.LOGGEDOUT;
     private ServerFacade sf;
+    private HashSet<GameDataList> games;
 
     public ChessClient(String serverURL){
         server = new ServerFacade(serverURL);
@@ -60,26 +62,56 @@ public class ChessClient {
                 default -> help();
             };
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            return (e).getMessage();
         }
     }
 
-    private String joinGame(String[] param) {
-        var gameID = param[0];
-        var teamColor = param[1].toUpperCase();
+    private String joinGame(String[] param) throws ResponseException {
+        if(param.length >= 2){
+            var gameID = Integer.parseInt(param[0]);
+            var teamColor = param[1].toUpperCase();
+            int gameToJoin = 0;
+            int count = 1;
+            for(var game : games){
+                if(count == gameID){
+                    gameToJoin = game.gameID();
+                }
+                count ++;
+            }
 
-        server.joinGame(Integer.parseInt(gameID), teamColor);
+            if(gameToJoin == 0){
+                return "Game does not exist";
+            }
 
-        return "joined game " + gameID;
+            server.joinGame(gameToJoin, teamColor);
+
+            return "joined game " + gameID;
+        }
+
+        throw new ResponseException(400, "Expected <ID> [WHITE|BLACK]");
+
+
+
     }
 
     private String listGames() {
-        var games = server.listGames();
-        var gson = new Gson();
+        games = server.listGames();
+        //var gson = new Gson();
         var result = new StringBuilder();
+        int count = 1;
 
         for(var game : games){
-            result.append(gson.toJson(game)).append('\n');
+            //result.append(gson.toJson(game)).append('\n');
+            result.append(count).append(") Game Name: ").append(game.gameName()).append("\n");
+            if(game.whiteUsername() != null){
+                result.append("White Username: ").append(game.whiteUsername()).append("\n");
+            }
+            if(game.blackUsername() != null){
+                result.append("Black Username: ").append(game.blackUsername()).append("\n");
+            }
+            result.append("\n");
+
+            count ++;
 
         }
 
@@ -101,6 +133,7 @@ public class ChessClient {
             var email = param[2];
             var newUser = new UserData(username, password, email);
             server.registerUser(newUser);
+            state = State.LOGGEDIN;
 
             return newUser.username() + " is now registered\n";
         }
@@ -109,7 +142,7 @@ public class ChessClient {
     }
 
     private String logIn(String... param) throws ResponseException {
-        if(param.length >= 1){
+        if(param.length >= 2){
             var username = param[0];
             var password = param[1];
             UserData user = new UserData(username, password, null);
@@ -122,12 +155,17 @@ public class ChessClient {
         throw new ResponseException(400, "Expected <USERNAME> <PASSWORD>");
     }
 
-    private String createGame(String ... param) {
-        var gameName = param[0];
-        GameData newGame = new GameData(0, "n", "n", gameName, null);
+    private String createGame(String ... param) throws ResponseException {
+        if(param.length >= 1){
+            var gameName = param[0];
+            GameData newGame = new GameData(0, "n", "n", gameName, null);
 
-        int gameId = server.createGame(newGame);
+            server.createGame(newGame);
 
-        return gameId +" with name " + gameName + " is now created\n";
+            return " Game " + gameName + " is now created\n";
+        }
+
+        throw new ResponseException(400, "Expected <NAME>");
+
     }
 }

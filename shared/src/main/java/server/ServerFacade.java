@@ -85,7 +85,7 @@ public class ServerFacade {
             throwIfNotSuccessful(http);
             return readBody(http, responseClass);
         } catch (URISyntaxException | IOException | ResponseException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException(e.getLocalizedMessage());
         }
     }
 
@@ -94,10 +94,9 @@ public class ServerFacade {
         if(http.getContentLength() < 0){
             try (InputStream resBody = http.getInputStream()){
                 InputStreamReader reader = new InputStreamReader(resBody);
-                if(responseClass != null){
+               if(responseClass != null){
                     response = new Gson().fromJson(reader, responseClass);
                 }
-
             }
         }
 
@@ -115,10 +114,22 @@ public class ServerFacade {
         }
     }
 
-    private void throwIfNotSuccessful(HttpURLConnection http) throws IOException, ResponseException {
+    private void throwIfNotSuccessful(HttpURLConnection http) throws ResponseException, IOException {
         var status = http.getResponseCode();
+        String error = "";
+        if(status == 401){
+            error = "Unauthorized";
+        }
+        if(status == 403){
+            error = "User already taken";
+        }
+        if(status == 400){
+            error = "Bad request";
+        }
+
+
         if (!isSuccessful(status)) {
-            throw new ResponseException(status, "failure: " + status);
+            throw new ResponseException(status, error);
         }
     }
 

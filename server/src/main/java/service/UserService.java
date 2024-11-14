@@ -30,7 +30,9 @@ public class UserService extends AdminService{
     }
 
     public String loginUser(String username, String password) throws DataAccessException, ResponseException {
-
+        if(userDAO.getUser(username) == null){
+            throw new ResponseException(401, "user doesn't exist");
+        }
         if(userDAO.checkUser(username,password)){
             String newAuthToken = makeAuthToken();
             AuthData authData = new AuthData(newAuthToken, username);

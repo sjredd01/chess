@@ -92,7 +92,7 @@ public class Server {
             response.status(403);
             return "{ \"message\": \"Error: already taken\" }";
         } catch (ResponseException e) {
-            throw new RuntimeException(e);
+            return "{ \"message\": \"Error: already taken\" }";
         }
 
     }
@@ -150,8 +150,8 @@ public class Server {
         } catch (DataAccessException e) {
             response.status(401);
             return "{ \"message\": \"Error: unauthorized\" }";
-        } catch (ResponseException e) {
-            throw new RuntimeException(e);
+        } catch (ResponseException | RuntimeException e) {
+            return "{ \"message\": \"Error: unauthorized\" }";
         }
 
     }
@@ -171,9 +171,10 @@ public class Server {
            return "{ \"username\": " + registerRequest.username() + ", \"authToken\": " + authToken + "}";
        } catch (RuntimeException | ResponseException e) {
            response.status(403);
+           response.body("{ \"message\": \"Error: already taken\" }");
            return "{ \"message\": \"Error: already taken\" }";
        } catch (SQLException e) {
-           throw new RuntimeException(e);
+           return "{ \"message\": \"Error: already taken\" }";
        }
 
 
@@ -195,7 +196,7 @@ public class Server {
            response.status(401);
            return "{ \"message\": \"Error: unauthorized\" }";
        } catch (ResponseException e) {
-           throw new RuntimeException(e);
+           return "{ \"message\": \"Error: already taken\" }";
        }
 
 

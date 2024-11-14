@@ -24,7 +24,7 @@ public class GameService extends AdminService{
         } catch (DataAccessException e) {
             throw new UnauthorizedException();
         } catch (ResponseException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException(e.getMessage());
         }
 
 
@@ -40,7 +40,7 @@ public class GameService extends AdminService{
         } catch (DataAccessException e) {
             throw new BadRequestException(e.getMessage());
         } catch (ResponseException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException(e.getMessage());
         }
 
         return gameID;

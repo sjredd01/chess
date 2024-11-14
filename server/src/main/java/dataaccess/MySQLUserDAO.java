@@ -81,7 +81,7 @@ public class MySQLUserDAO implements UserDAO{
             String hashedPassword = BCrypt.hashpw(user.password(), BCrypt.gensalt());
 
             executeUpdate(statement, user.username(), hashedPassword, user.email());
-        }catch (SQLException e){
+        }catch (Exception e){
             throw new DataAccessException("User already exists: " + user.username());
         }
 
