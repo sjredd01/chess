@@ -1,15 +1,17 @@
 package ui;
 
 import chess.ChessGame;
+import ui.websocket.NotificationHandler;
 
+import javax.management.Notification;
 import java.util.Scanner;
 
-public class Repl {
+public class Repl implements NotificationHandler {
     private final ChessClient client;
     public static PrintBoard printBoard;
 
     public Repl(String serverURL) {
-        this.client = new ChessClient(serverURL);
+        this.client = new ChessClient(serverURL, this);
     }
 
     public void run(){
@@ -18,7 +20,6 @@ public class Repl {
         Scanner scanner = new Scanner(System.in);
         var result = "";
         while (!result.equals("quit")) {
-            //printPrompt();
             System.out.println("\n" + client.help());
             String line = scanner.nextLine();
 
@@ -46,5 +47,10 @@ public class Repl {
             }
         }
         System.out.println();
+    }
+
+    @Override
+    public void notify(Notification notification) {
+        System.out.println(notification.getMessage());
     }
 }

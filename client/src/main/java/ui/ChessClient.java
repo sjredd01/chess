@@ -8,21 +8,26 @@ import model.GameData;
 import model.GameDataList;
 import model.UserData;
 import server.ServerFacade;
+import ui.websocket.NotificationHandler;
+import ui.websocket.WebSocketFacade;
 
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.HashSet;
 
 public class ChessClient {
     private final ServerFacade server;
-    //private final String serverURL;
     private final String authToken = null;
+    private String serverURL;
     private State state = State.LOGGEDOUT;
-    private ServerFacade sf;
+    private final NotificationHandler notificationHandler;
+    private WebSocketFacade ws;
     private HashSet<GameDataList> games;
 
-    public ChessClient(String serverURL){
+    public ChessClient(String serverURL, NotificationHandler notificationHandler){
         server = new ServerFacade(serverURL);
-        //this.serverURL = serverURL;
+        this.serverURL = serverURL;
+        this.notificationHandler = notificationHandler;
     }
 
 
@@ -66,7 +71,7 @@ public class ChessClient {
         }
     }
 
-    private String joinGame(String[] param) throws ResponseException {
+    private String joinGame(String[] param) throws ResponseException, URISyntaxException {
         if(param.length >= 2){
             var gameID = Integer.parseInt(param[0]);
             var teamColor = param[1].toUpperCase();
@@ -84,24 +89,21 @@ public class ChessClient {
             }
 
             server.joinGame(gameToJoin, teamColor);
+            ws = new WebSocketFacade(serverURL, notificationHandler);
+            ws.joinGame(authToken, gameID);
 
             return "joined game " + gameID;
         }
 
         throw new ResponseException(400, "Expected <ID> [WHITE|BLACK]");
-
-
-
     }
 
     private String listGames() {
         games = server.listGames();
-        //var gson = new Gson();
         var result = new StringBuilder();
         int count = 1;
 
         for(var game : games){
-            //result.append(gson.toJson(game)).append('\n');
             result.append(count).append(") Game Name: ").append(game.gameName()).append("\n");
             if(game.whiteUsername() != null){
                 result.append("White Username: ").append(game.whiteUsername()).append("\n");
