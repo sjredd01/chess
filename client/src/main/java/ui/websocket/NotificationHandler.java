@@ -1,10 +1,11 @@
 package ui.websocket;
 
-import websocket.messages.ServerMessage;
 import websocket.commands.UserGameCommand;
 
+import javax.management.Notification;
+
 public interface NotificationHandler {
-    void notify(ServerMessage serverMessage);
+    void notify(Notification notification);
 
     void command(UserGameCommand userGameCommand);
 }

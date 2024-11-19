@@ -1,12 +1,10 @@
 package server;
 
-import chess.ChessGame;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
 import dataaccess.*;
 import exception.ResponseException;
 import model.*;
+import server.websocket.WebSocketHandler;
 import service.AdminService;
 import service.GameService;
 import service.UserService;
@@ -16,6 +14,8 @@ import java.sql.SQLException;
 import java.util.*;
 
 public class Server {
+
+    private final WebSocketHandler webSocketHandler = new WebSocketHandler();
 
     UserDAO userDAO;
     AuthDAO authDAO;
@@ -52,6 +52,8 @@ public class Server {
 
         Spark.staticFiles.location("web");
 
+        Spark.webSocket("/ws", webSocketHandler);
+
         // Register your endpoints and handle exceptions here.
         Spark.delete("/db", this::clear);
         Spark.post("/user", this::registerNewUser);
@@ -71,7 +73,7 @@ public class Server {
         return Spark.port();
     }
 
-    private Object joinGame(Request request, Response response) throws DataAccessException {
+    private Object joinGame(Request request, Response response) {
         String authToken = request.headers("authorization");
 
         JoinGameRequest joinData = new Gson().fromJson(request.body(), JoinGameRequest.class);
