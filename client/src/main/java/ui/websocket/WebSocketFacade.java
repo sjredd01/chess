@@ -1,5 +1,6 @@
 package ui.websocket;
 
+import chess.ChessMove;
 import com.google.gson.Gson;
 import exception.ResponseException;
 import websocket.commands.UserGameCommand;
@@ -44,7 +45,7 @@ public class WebSocketFacade extends Endpoint {
 
     public void joinGame(String username, Integer gameId) throws ResponseException {
         try{
-            var action = new UserGameCommand(UserGameCommand.CommandType.CONNECT, username, gameId);
+            var action = new UserGameCommand(UserGameCommand.CommandType.CONNECT, username, gameId, null);
             gameID = gameId;
             this.session.getBasicRemote().sendText(new Gson().toJson(action));
         } catch (IOException e) {
@@ -52,9 +53,27 @@ public class WebSocketFacade extends Endpoint {
         }
     }
 
-    public void leaveGame(String username){
+    public void leaveGame(String username) throws ResponseException {
         try{
-            var action = new UserGameCommand(UserGameCommand.CommandType.LEAVE, username, gameID);
+            var action = new UserGameCommand(UserGameCommand.CommandType.LEAVE, username, gameID, null);
+            this.session.getBasicRemote().sendText(new Gson().toJson(action));
+        } catch (IOException e) {
+            throw new ResponseException(500, e.getMessage());
+        }
+    }
+
+    public void resignGame(String username) throws ResponseException {
+        try{
+            var action = new UserGameCommand(UserGameCommand.CommandType.RESIGN, username, gameID, null);
+            this.session.getBasicRemote().sendText(new Gson().toJson(action));
+        } catch (IOException e) {
+            throw new ResponseException(500, e.getMessage());
+        }
+    }
+
+    public void makeMove(String username, ChessMove move) throws ResponseException {
+        try{
+            var action = new UserGameCommand(UserGameCommand.CommandType.RESIGN, username, gameID, move);
             this.session.getBasicRemote().sendText(new Gson().toJson(action));
         } catch (IOException e) {
             throw new ResponseException(500, e.getMessage());

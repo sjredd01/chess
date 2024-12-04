@@ -3,6 +3,8 @@ package server.websocket;
 
 
 import chess.ChessGame;
+import chess.ChessMove;
+import chess.InvalidMoveException;
 import com.google.gson.Gson;
 import dataaccess.AuthDAO;
 import dataaccess.DataAccessException;
@@ -34,20 +36,74 @@ public class WebSocketHandler {
     }
 
     @OnWebSocketMessage
-    public void onMessage(Session session, String message) throws IOException, ResponseException, DataAccessException {
+    public void onMessage(Session session, String message) throws IOException, ResponseException, DataAccessException, InvalidMoveException {
         UserGameCommand action = new Gson().fromJson(message, UserGameCommand.class);
         switch (action.getCommandType()){
             case CONNECT  -> enter(action.getUsername(), action.getGameID(), session);
             case LEAVE -> leave(action.getUsername(), action.getGameID(), session);
             case RESIGN -> resign(action.getUsername(), action.getGameID(), session);
+            case MAKE_MOVE -> makeMove(action.getUsername(), action.getGameID(), action.getMove(), session);
         }
     }
 
-    private void resign(String username, int gameID, Session session) throws ResponseException, DataAccessException {
+    private void makeMove(String username, Integer gameID, ChessMove move, Session session) throws ResponseException, DataAccessException, IOException, InvalidMoveException {
+        GameData gameInPlay = gameDAO.getGame(gameID);
+        ChessGame game = gameInPlay.game();
+        ChessGame.TeamColor userTeam = ChessGame.TeamColor.WHITE;
+
+        if(username.equals(gameInPlay.blackUsername())){
+            userTeam = ChessGame.TeamColor.BLACK;
+        }
+
+        if(!game.checkGameStatus()){
+            for(ChessMove moves : game.validMoves(move.getStartPosition())){
+                if(moves.equals(move)){
+                    game.makeMove(move);
+                    GameData newGame = new GameData(gameID, gameInPlay.whiteUsername(), gameInPlay.blackUsername(), gameInPlay.gameName(), game);
+                    gameDAO.updateGame(newGame);
+                    ChessGame updatedGame = gameDAO.getGame(gameID).game();
+                    var notification = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, updatedGame);
+                    connections.broadcast("", notification);
+                    var notificationForMove = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+                    connections.broadcast(username, notificationForMove);
+
+                    if(game.isInCheck(ChessGame.TeamColor.BLACK)){
+                        var notification1 = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+                        connections.broadcast("", notification1);
+                    }
+
+                    if(game.isInCheckmate(ChessGame.TeamColor.BLACK)){
+                        var notification2 = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+                        game.endGame();
+                        connections.broadcast("", notification2);
+                    }
+
+                    if(game.isInStalemate(ChessGame.TeamColor.BLACK)){
+                        var notification3 = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+                        game.endGame();
+                        connections.broadcast("", notification3);
+                    }
+                }
+            }
+            
+            var invalidMoveNotification = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
+            connections.broadcastToOne(username, invalidMoveNotification);
+
+
+
+        }else{
+            var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
+            connections.broadcastToOne(username, notification);
+        }
+
+    }
+
+    private void resign(String username, int gameID, Session session) throws ResponseException, DataAccessException, IOException {
         connections.remove(username);
         var message = String.format("resigned the game");
         gameDAO.getGame(gameID).game().endGame();
         var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+        connections.broadcast("", notification);
     }
 
     private void leave(String username, int gameID, Session session) throws IOException, ResponseException, DataAccessException {
@@ -63,11 +119,11 @@ public class WebSocketHandler {
             gameDAO.updateGame(newGame);
         }else{
             var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
-            connections.broadcast("", notification);
+            connections.broadcast(username, notification);
         }
 
         var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
-        connections.broadcast("", notification);
+        connections.broadcast(username, notification);
     }
 
     private void enter(String username, int gameID, Session session) throws IOException {
@@ -92,14 +148,4 @@ public class WebSocketHandler {
 
     }
 
-    public void joinGame(String color, String username) throws ResponseException {
-        try{
-            var message = String.format(username + " has joined the game as " + color);
-            var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
-            connections.broadcast("", notification);
-        } catch (Exception e) {
-            throw new ResponseException(500, e.getMessage());
-        }
-
-    }
 }
