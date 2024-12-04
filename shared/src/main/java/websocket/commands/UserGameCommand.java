@@ -12,13 +12,13 @@ public class UserGameCommand {
 
     private final CommandType commandType;
 
-    private final String authToken;
+    private final String username;
 
     private final Integer gameID;
 
-    public UserGameCommand(CommandType commandType, String authToken, Integer gameID) {
+    public UserGameCommand(CommandType commandType, String username, Integer gameID) {
         this.commandType = commandType;
-        this.authToken = authToken;
+        this.username = username;
         this.gameID = gameID;
     }
 
@@ -33,8 +33,8 @@ public class UserGameCommand {
         return commandType;
     }
 
-    public String getAuthToken() {
-        return authToken;
+    public String getUsername() {
+        return username;
     }
 
     public Integer getGameID() {
@@ -51,12 +51,12 @@ public class UserGameCommand {
         }
         UserGameCommand that = (UserGameCommand) o;
         return getCommandType() == that.getCommandType() &&
-                Objects.equals(getAuthToken(), that.getAuthToken()) &&
+                Objects.equals(getUsername(), that.getUsername()) &&
                 Objects.equals(getGameID(), that.getGameID());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getCommandType(), getAuthToken(), getGameID());
+        return Objects.hash(getCommandType(), getUsername(), getGameID());
     }
 }

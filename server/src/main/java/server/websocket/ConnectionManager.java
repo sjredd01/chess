@@ -37,9 +37,21 @@ public class ConnectionManager {
         }
     }
 
-    public void broadcastToOne(String visitor, ServerMessage message){
+    public void broadcastToOne(String visitor, ServerMessage message) throws IOException {
         var removedList = new ArrayList<Connection>();
 
-        
+        for(var con : connections.values()){
+            if(con.session.isOpen()){
+                if(con.visitor.equals(visitor)){
+                    con.send(message.toString());
+                }
+            }else{
+                removedList.add(con);
+            }
+        }
+
+        for(var con : removedList){
+            connections.remove(con.visitor);
+        }
     }
 }

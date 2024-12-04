@@ -15,6 +15,7 @@ import java.net.URISyntaxException;
 public class WebSocketFacade extends Endpoint {
     Session session;
     NotificationHandler notificationHandler;
+    int gameID;
 
     public WebSocketFacade(String url, NotificationHandler notificationHandler) throws ResponseException {
         try{
@@ -41,13 +42,22 @@ public class WebSocketFacade extends Endpoint {
     public void onOpen(Session session, EndpointConfig endpointConfig) {
     }
 
-    public void joinGame(String authToken, Integer gameId) throws ResponseException {
+    public void joinGame(String username, Integer gameId) throws ResponseException {
         try{
-            var action = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, gameId);
+            var action = new UserGameCommand(UserGameCommand.CommandType.CONNECT, username, gameId);
+            gameID = gameId;
             this.session.getBasicRemote().sendText(new Gson().toJson(action));
         } catch (IOException e) {
             throw new ResponseException(500, e.getMessage());
         }
+    }
 
+    public void leaveGame(String username){
+        try{
+            var action = new UserGameCommand(UserGameCommand.CommandType.LEAVE, username, gameID);
+            this.session.getBasicRemote().sendText(new Gson().toJson(action));
+        } catch (IOException e) {
+            throw new ResponseException(500, e.getMessage());
+        }
     }
 }

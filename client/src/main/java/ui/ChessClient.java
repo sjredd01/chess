@@ -1,9 +1,6 @@
 package ui;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
 import exception.ResponseException;
-import model.AuthData;
 import model.GameData;
 import model.GameDataList;
 import model.UserData;
@@ -17,7 +14,7 @@ import java.util.HashSet;
 
 public class ChessClient {
     private final ServerFacade server;
-    private final String authToken = null;
+    private String username1 = null;
     private final String serverURL;
     private State state = State.LOGGEDOUT;
     private final NotificationHandler notificationHandler;
@@ -90,7 +87,7 @@ public class ChessClient {
 
             server.joinGame(gameToJoin, teamColor);
             ws = new WebSocketFacade(serverURL, notificationHandler);
-            ws.joinGame(authToken, gameID);
+            ws.joinGame(username1, gameID);
 
             return "joined game " + gameID;
         }
@@ -134,6 +131,7 @@ public class ChessClient {
             var password = param[1];
             var email = param[2];
             var newUser = new UserData(username, password, email);
+            username1 = username;
             server.registerUser(newUser);
             state = State.LOGGEDIN;
 
@@ -148,6 +146,7 @@ public class ChessClient {
             var username = param[0];
             var password = param[1];
             UserData user = new UserData(username, password, null);
+            username1 = username;
             server.logIn(user);
             state = State.LOGGEDIN;
 

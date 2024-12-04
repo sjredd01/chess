@@ -16,6 +16,7 @@ public class ChessGame {
     private TeamColor teamColor = TeamColor.WHITE;
     private int moveCount = 0;
     private boolean used;
+    private boolean gameFinished = false;
 
     public ChessGame() {
         board.resetBoard();
@@ -309,5 +310,13 @@ public class ChessGame {
         }
 
         return positions;
+    }
+
+    public boolean checkGameStatus(){
+        return gameFinished;
+    }
+
+    public void endGame(){
+        gameFinished = true;
     }
 }
