@@ -18,7 +18,7 @@ import java.util.HashSet;
 public class ChessClient {
     private final ServerFacade server;
     private final String authToken = null;
-    private String serverURL;
+    private final String serverURL;
     private State state = State.LOGGEDOUT;
     private final NotificationHandler notificationHandler;
     private WebSocketFacade ws;

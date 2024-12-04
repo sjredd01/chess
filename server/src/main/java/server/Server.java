@@ -15,8 +15,6 @@ import java.util.*;
 
 public class Server {
 
-    private final WebSocketHandler webSocketHandler = new WebSocketHandler();
-
     UserDAO userDAO;
     AuthDAO authDAO;
     GameDAO gameDAO;
@@ -24,6 +22,7 @@ public class Server {
     static AdminService adminService;
     static GameService gameService;
     static UserService userService;
+    static WebSocketHandler webSocketHandler;
 
     public Server(){
         try {
@@ -45,6 +44,9 @@ public class Server {
         adminService = new AdminService(gameDAO, authDAO, userDAO);
         gameService = new GameService(gameDAO, authDAO, userDAO);
         userService = new UserService(gameDAO, authDAO, userDAO);
+
+        webSocketHandler = new WebSocketHandler(gameDAO, authDAO, userDAO);
+
     }
 
     public int run(int desiredPort) {
@@ -80,6 +82,7 @@ public class Server {
 
         try{
             gameService.joinGame(joinData.playerColor(), joinData.gameID(), authToken);
+            String user = authDAO.getAuth(authToken).username();
             response.status(200);
             return "{}";
         } catch (DataAccessException e) {

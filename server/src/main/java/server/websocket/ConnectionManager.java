@@ -36,4 +36,10 @@ public class ConnectionManager {
             connections.remove(con.visitor);
         }
     }
+
+    public void broadcastToOne(String visitor, ServerMessage message){
+        var removedList = new ArrayList<Connection>();
+
+        
+    }
 }

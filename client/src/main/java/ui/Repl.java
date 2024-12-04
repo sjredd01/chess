@@ -2,6 +2,8 @@ package ui;
 
 import chess.ChessGame;
 import ui.websocket.NotificationHandler;
+import websocket.commands.UserGameCommand;
+import websocket.messages.ServerMessage;
 
 import javax.management.Notification;
 import java.util.Scanner;
@@ -50,7 +52,7 @@ public class Repl implements NotificationHandler {
     }
 
     @Override
-    public void notify(Notification notification) {
-        System.out.println(notification.getMessage());
+    public void notify(ServerMessage notification) {
+
     }
 }
