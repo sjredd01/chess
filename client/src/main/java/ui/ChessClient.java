@@ -75,16 +75,31 @@ public class ChessClient {
                 case "logout" -> logOut();
                 case "list" -> listGames();
                 case "redraw" -> redrawBoard();
+//                case "highlight" -> highlightMoves();
 //                case "observe" -> observeGame();
-//                case "leave" -> leaveGame();
+               case "leave" -> leaveGame();
 //                case "make-move" -> makeMove();
-//                case "resign" -> resignGame();
+                case "resign" -> resignGame();
                 case "quit" -> "quit";
                 default -> help();
             };
         } catch (Exception e) {
             return (e).getMessage();
         }
+    }
+
+    private String resignGame() throws ResponseException {
+        ws = new WebSocketFacade(serverURL, notificationHandler);
+        ws.leaveGame(username1);
+
+        return username1 + " has resigned the game";
+    }
+
+    private String leaveGame() throws ResponseException {
+        ws = new WebSocketFacade(serverURL, notificationHandler);
+        ws.leaveGame(username1);
+
+        return username1 + " has left the game";
     }
 
     private String redrawBoard() throws ResponseException {
