@@ -27,11 +27,11 @@ public class Repl implements NotificationHandler {
 
 
             try {
-                if(line.contains("observe") && line.matches(".*\\d+.*")){
-                    printBoard = new PrintBoard(new ChessGame());
-                    printBoard.printBoard(ChessGame.TeamColor.WHITE, null);
-                    System.out.println("observing game\n");
-                }else {
+//                if(line.contains("observe") && line.matches(".*\\d+.*")){
+//                    printBoard = new PrintBoard(new ChessGame());
+//                    printBoard.printBoard(ChessGame.TeamColor.WHITE, null);
+//                    System.out.println("observing game\n");
+//                }else {
 
 
                     result = client.eval(line);
@@ -41,7 +41,7 @@ public class Repl implements NotificationHandler {
 //                        printBoard.printBoard(ChessGame.TeamColor.WHITE, null);
 //                    }
                     System.out.print(result + "\n");
-                }
+                //}
 
             } catch (Throwable e) {
                 var msg = e.getMessage();

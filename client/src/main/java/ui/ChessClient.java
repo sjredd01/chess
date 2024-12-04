@@ -1,6 +1,7 @@
 package ui;
 
 import chess.ChessGame;
+import chess.ChessPosition;
 import exception.ResponseException;
 import model.GameData;
 import model.GameDataList;
@@ -22,7 +23,8 @@ public class ChessClient {
     private WebSocketFacade ws;
     private HashSet<GameDataList> games;
     public static PrintBoard printBoard;
-    ChessGame.TeamColor userColor = ChessGame.TeamColor.WHITE;
+    private ChessGame.TeamColor userColor = ChessGame.TeamColor.WHITE;
+    private GameData game;
 
     public ChessClient(String serverURL, NotificationHandler notificationHandler){
         server = new ServerFacade(serverURL);
@@ -48,9 +50,9 @@ public class ChessClient {
            return """
                 redraw
                 leave
-                make-move
+                make-move <STARTPOSITION> <ENDPOSITION>
                 resign
-                highlight
+                highlight <POSITION>
                 help
                 """;
        }
@@ -75,9 +77,9 @@ public class ChessClient {
                 case "logout" -> logOut();
                 case "list" -> listGames();
                 case "redraw" -> redrawBoard();
-//                case "highlight" -> highlightMoves();
-//                case "observe" -> observeGame();
-               case "leave" -> leaveGame();
+                case "highlight" -> highlightMoves(param);
+                case "observe" -> observeGame(param);
+                case "leave" -> leaveGame();
 //                case "make-move" -> makeMove();
                 case "resign" -> resignGame();
                 case "quit" -> "quit";
@@ -88,9 +90,96 @@ public class ChessClient {
         }
     }
 
+    private String highlightMoves(String[] param) throws ResponseException {
+        if(param.length >= 1){
+            var input = param[0];
+            ChessPosition position = convertToPosition(input);
+
+            printBoard = new PrintBoard(game.game());
+
+            printBoard.printBoard(userColor, position);
+
+            return "Possible moves for piece at " + input;
+
+        }
+
+        throw new ResponseException(400, "Expected <POSITION>");
+    }
+
+    private ChessPosition convertToPosition(String input) throws ResponseException {
+        ChessPosition position;
+        int row;
+        int col;
+        char[] charOfPosition = input.toCharArray();
+
+        if(charOfPosition[0] == 'a'){
+            row = 0;
+        } else if (charOfPosition[0] == 'b') {
+            row = 1;
+        }else if (charOfPosition[0] == 'c') {
+            row = 2;
+        }else if (charOfPosition[0] == 'd') {
+            row = 3;
+        }else if (charOfPosition[0] == 'e') {
+            row = 4;
+        }else if (charOfPosition[0] == 'f') {
+            row = 5;
+        }else if (charOfPosition[0] == 'g') {
+            row = 6;
+        }else if (charOfPosition[0] == 'h') {
+            row = 7;
+        }else{
+            throw new ResponseException(400, "Invalid position");
+        }
+
+        col = (int) charOfPosition[1] - 1;
+
+        if(row >= 8 || col >= 8){
+            throw new ResponseException(400, "Invalid position");
+        }
+
+        position = new ChessPosition(row, col);
+
+        return position;
+    }
+
+    private String observeGame(String[] param) throws ResponseException, URISyntaxException {
+        if(param.length >= 1){
+            var gameID = Integer.parseInt(param[0]);
+            int gameToJoin = 0;
+            int count = 1;
+            for(var game : games){
+                if(count == gameID){
+                    gameToJoin = game.gameID();
+                }
+                count ++;
+            }
+
+            if(gameToJoin == 0){
+                return "Game does not exist";
+            }
+
+            state = State.GAMEPLAY;
+            ws = new WebSocketFacade(serverURL, notificationHandler);
+            ws.observeGame(username1, gameID);
+
+            game = ws.getGame();
+            printBoard = new PrintBoard(game.game());
+
+            printBoard.printBoard(userColor, null);
+
+            return "Observing game " + gameID;
+        }
+
+        throw new ResponseException(400, "Expected <ID>");
+    }
+
+
+
+
     private String resignGame() throws ResponseException {
         ws = new WebSocketFacade(serverURL, notificationHandler);
-        ws.leaveGame(username1);
+        ws.resignGame(username1);
 
         return username1 + " has resigned the game";
     }
@@ -137,7 +226,7 @@ public class ChessClient {
             ws = new WebSocketFacade(serverURL, notificationHandler);
             ws.joinGame(username1, gameID);
 
-            GameData game = ws.getGame();
+            game = ws.getGame();
             printBoard = new PrintBoard(game.game());
             if(username1.equals(game.blackUsername())){
                 userColor = ChessGame.TeamColor.BLACK;
