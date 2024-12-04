@@ -1,5 +1,6 @@
 package ui;
 
+import chess.ChessGame;
 import exception.ResponseException;
 import model.GameData;
 import model.GameDataList;
@@ -20,6 +21,8 @@ public class ChessClient {
     private final NotificationHandler notificationHandler;
     private WebSocketFacade ws;
     private HashSet<GameDataList> games;
+    public static PrintBoard printBoard;
+    ChessGame.TeamColor userColor = ChessGame.TeamColor.WHITE;
 
     public ChessClient(String serverURL, NotificationHandler notificationHandler){
         server = new ServerFacade(serverURL);
@@ -37,6 +40,17 @@ public class ChessClient {
                 observe <ID>
                 logout
                 quit
+                help
+                """;
+       }
+
+       if(state == State.GAMEPLAY){
+           return """
+                redraw
+                leave
+                make-move
+                resign
+                highlight
                 help
                 """;
        }
@@ -60,12 +74,30 @@ public class ChessClient {
                 case "join" -> joinGame(param);
                 case "logout" -> logOut();
                 case "list" -> listGames();
+                case "redraw" -> redrawBoard();
+//                case "observe" -> observeGame();
+//                case "leave" -> leaveGame();
+//                case "make-move" -> makeMove();
+//                case "resign" -> resignGame();
                 case "quit" -> "quit";
                 default -> help();
             };
         } catch (Exception e) {
             return (e).getMessage();
         }
+    }
+
+    private String redrawBoard() throws ResponseException {
+        ws = new WebSocketFacade(serverURL, notificationHandler);
+        GameData game = ws.getGame();
+        printBoard = new PrintBoard(game.game());
+        if(username1.equals(game.blackUsername())){
+            userColor = ChessGame.TeamColor.BLACK;
+        }
+
+        printBoard.printBoard(userColor, null);
+
+        return "board redrawn";
     }
 
     private String joinGame(String[] param) throws ResponseException, URISyntaxException {
@@ -86,8 +118,18 @@ public class ChessClient {
             }
 
             server.joinGame(gameToJoin, teamColor);
+            state = State.GAMEPLAY;
             ws = new WebSocketFacade(serverURL, notificationHandler);
             ws.joinGame(username1, gameID);
+
+            GameData game = ws.getGame();
+            printBoard = new PrintBoard(game.game());
+            if(username1.equals(game.blackUsername())){
+                userColor = ChessGame.TeamColor.BLACK;
+            }
+
+            printBoard.printBoard(userColor, null);
+
 
             return "joined game " + gameID;
         }

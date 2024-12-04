@@ -35,11 +35,11 @@ public class Repl implements NotificationHandler {
 
 
                     result = client.eval(line);
-                    if (line.contains("join") && line.matches(".*\\d+.*")) {
-                        printBoard = new PrintBoard(new ChessGame());
-                        printBoard.printBoard(ChessGame.TeamColor.BLACK, null);
-                        printBoard.printBoard(ChessGame.TeamColor.WHITE, null);
-                    }
+//                    if (line.contains("join") && line.matches(".*\\d+.*")) {
+//                        printBoard = new PrintBoard(new ChessGame());
+//                        printBoard.printBoard(ChessGame.TeamColor.BLACK, null);
+//                        printBoard.printBoard(ChessGame.TeamColor.WHITE, null);
+//                    }
                     System.out.print(result + "\n");
                 }
 

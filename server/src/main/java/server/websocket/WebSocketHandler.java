@@ -20,7 +20,6 @@ import websocket.messages.ServerMessage;
 
 
 import java.io.IOException;
-import java.util.Objects;
 
 @WebSocket
 public class WebSocketHandler {
@@ -50,42 +49,51 @@ public class WebSocketHandler {
         GameData gameInPlay = gameDAO.getGame(gameID);
         ChessGame game = gameInPlay.game();
         ChessGame.TeamColor userTeam = ChessGame.TeamColor.WHITE;
+        ChessGame.TeamColor enemyTeam = ChessGame.TeamColor.BLACK;
 
         if(username.equals(gameInPlay.blackUsername())){
             userTeam = ChessGame.TeamColor.BLACK;
+            enemyTeam = ChessGame.TeamColor.WHITE;
         }
 
         if(!game.checkGameStatus()){
+            if(game.getTeamTurn() != userTeam){
+                var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
+                connections.broadcastToOne(username, notification);
+            }
+
+
             for(ChessMove moves : game.validMoves(move.getStartPosition())){
                 if(moves.equals(move)){
                     game.makeMove(move);
+                    game.setTeamTurn(enemyTeam);
                     GameData newGame = new GameData(gameID, gameInPlay.whiteUsername(), gameInPlay.blackUsername(), gameInPlay.gameName(), game);
                     gameDAO.updateGame(newGame);
-                    ChessGame updatedGame = gameDAO.getGame(gameID).game();
+                    GameData updatedGame = gameDAO.getGame(gameID);
                     var notification = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, updatedGame);
                     connections.broadcast("", notification);
                     var notificationForMove = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
                     connections.broadcast(username, notificationForMove);
 
-                    if(game.isInCheck(ChessGame.TeamColor.BLACK)){
+                    if(game.isInCheck(enemyTeam)){
                         var notification1 = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
                         connections.broadcast("", notification1);
                     }
 
-                    if(game.isInCheckmate(ChessGame.TeamColor.BLACK)){
+                    if(game.isInCheckmate(enemyTeam)){
                         var notification2 = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
                         game.endGame();
                         connections.broadcast("", notification2);
                     }
 
-                    if(game.isInStalemate(ChessGame.TeamColor.BLACK)){
+                    if(game.isInStalemate(enemyTeam)){
                         var notification3 = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
                         game.endGame();
                         connections.broadcast("", notification3);
                     }
                 }
             }
-            
+
             var invalidMoveNotification = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
             connections.broadcastToOne(username, invalidMoveNotification);
 
@@ -100,7 +108,7 @@ public class WebSocketHandler {
 
     private void resign(String username, int gameID, Session session) throws ResponseException, DataAccessException, IOException {
         connections.remove(username);
-        var message = String.format("resigned the game");
+        //var message = String.format("resigned the game");
         gameDAO.getGame(gameID).game().endGame();
         var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
         connections.broadcast("", notification);
@@ -131,7 +139,7 @@ public class WebSocketHandler {
         try{
             connections.add(username, session);
             var message = String.format(username + " has entered the game");
-            ChessGame game = gameDAO.getGame(gameID).game();
+            GameData game = gameDAO.getGame(gameID);
             var notification = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, game);
             var notification1 = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
 

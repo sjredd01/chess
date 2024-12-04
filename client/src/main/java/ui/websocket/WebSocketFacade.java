@@ -1,13 +1,13 @@
 package ui.websocket;
 
+import chess.ChessGame;
 import chess.ChessMove;
 import com.google.gson.Gson;
 import exception.ResponseException;
+import model.GameData;
 import websocket.commands.UserGameCommand;
 import websocket.messages.ServerMessage;
 
-import javax.management.Notification;
-import javax.swing.*;
 import javax.websocket.*;
 import java.io.IOException;
 import java.net.URI;
@@ -17,6 +17,7 @@ public class WebSocketFacade extends Endpoint {
     Session session;
     NotificationHandler notificationHandler;
     int gameID;
+    GameData game;
 
     public WebSocketFacade(String url, NotificationHandler notificationHandler) throws ResponseException {
         try{
@@ -31,6 +32,9 @@ public class WebSocketFacade extends Endpoint {
                 @Override
                 public void onMessage(String message) {
                     ServerMessage notification = new Gson().fromJson(message, ServerMessage.class);
+                    if(notification.getServerMessageType() == ServerMessage.ServerMessageType.LOAD_GAME){
+                        game = notification.getGame();
+                    }
                     notificationHandler.notify(notification);
                 }
             });
@@ -78,5 +82,9 @@ public class WebSocketFacade extends Endpoint {
         } catch (IOException e) {
             throw new ResponseException(500, e.getMessage());
         }
+    }
+
+    public GameData getGame(){
+        return game;
     }
 }
