@@ -54,68 +54,77 @@ public class WebSocketHandler {
         ChessGame.TeamColor enemyTeam = ChessGame.TeamColor.BLACK;
         Boolean validMove = false;
 
-
         if(authorized(authToken)){
             String username = authDAO.getAuth(authToken).username();
 
-            if (username.equals(gameInPlay.blackUsername())) {
-                userTeam = ChessGame.TeamColor.BLACK;
-                enemyTeam = ChessGame.TeamColor.WHITE;
-            }
-
-            if (!game.checkGameStatus()) {
-                if (game.getTeamTurn() != userTeam) {
-                    var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
-                    connections.broadcastToOne(username, notification);
+            if(username.equals(gameInPlay.blackUsername()) || username.equals(gameInPlay.whiteUsername())) {
+                if (username.equals(gameInPlay.blackUsername())) {
+                    userTeam = ChessGame.TeamColor.BLACK;
+                    enemyTeam = ChessGame.TeamColor.WHITE;
                 }
+                if(gameInPlay.game().getBoard().getPiece(move.getStartPosition()).getTeamColor() == userTeam) {
+                    if (!game.checkGameStatus()) {
+                        for (ChessMove moves : game.validMoves(move.getStartPosition())) {
+                            if (moves.equals(move)) {
+                                try {
+                                    game.makeMove(move);
+                                    game.setTeamTurn(enemyTeam);
+                                    GameData newGame = new GameData(gameID, gameInPlay.whiteUsername(), gameInPlay.blackUsername(), gameInPlay.gameName(), game);
+                                    gameDAO.updateGame(newGame);
+                                    GameData updatedGame = gameDAO.getGame(gameID);
+                                    var notification = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, updatedGame);
+                                    connections.broadcast("", notification);
+                                    var message = String.format("message: " + userTeam + " team made move " + move);
+                                    var notificationForMove = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
+                                    connections.broadcast(authToken, notificationForMove);
 
+                                    if (game.isInCheck(enemyTeam)) {
+                                        var message1 = String.format("Check");
+                                        var notification1 = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message1);
+                                        connections.broadcast("", notification1);
+                                    }else if (game.isInCheckmate(enemyTeam)) {
+                                        var message2 = String.format("Checkmate");
+                                        var notification2 = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message2);
+                                        game.endGame();
+                                        connections.broadcast("", notification2);
+                                    }
 
-                for (ChessMove moves : game.validMoves(move.getStartPosition())) {
-                    if (moves.equals(move)) {
-                        game.makeMove(move);
-                        game.setTeamTurn(enemyTeam);
-                        GameData newGame = new GameData(gameID, gameInPlay.whiteUsername(), gameInPlay.blackUsername(), gameInPlay.gameName(), game);
-                        gameDAO.updateGame(newGame);
-                        GameData updatedGame = gameDAO.getGame(gameID);
-                        var notification = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, updatedGame);
-                        connections.broadcast("", notification);
-                        var message = String.format("message: " + userTeam + " team made move " + move);
-                        var notificationForMove = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
-                        connections.broadcast(authToken, notificationForMove);
+                                    if (game.isInStalemate(enemyTeam)) {
+                                        var message3 = String.format("Checkmate");
+                                        var notification3 = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message3);
+                                        game.endGame();
+                                        connections.broadcast("", notification3);
+                                    }
+                                } catch (InvalidMoveException e) {
+                                    var errorMessage = String.format("ERROR: Wrong turn");
+                                    var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorMessage);
+                                    connections.broadcastToOne(authToken, notification);
+                                }
+                            }
 
-                        if (game.isInCheck(enemyTeam)) {
-                            var notification1 = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
-                            connections.broadcast("", notification1);
+                            validMove = true;
                         }
 
-                        if (game.isInCheckmate(enemyTeam)) {
-                            var notification2 = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
-                            game.endGame();
-                            connections.broadcast("", notification2);
+                        if (!validMove) {
+                            var errorMessage = String.format("ERROR: Invalid move");
+                            var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorMessage);
+                            connections.broadcastToOne(authToken, notification);
                         }
 
-                        if (game.isInStalemate(enemyTeam)) {
-                            var notification3 = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
-                            game.endGame();
-                            connections.broadcast("", notification3);
-                        }
+                    } else {
+                        var errorMessage = String.format("ERROR: Can not play on a game that finished");
+                        var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorMessage);
+                        connections.broadcastToOne(username, notification);
                     }
-
-                    validMove = true;
-                }
-
-                if(!validMove){
-                    var errorMessage = String.format("ERROR: Invalid move");
+                }else{
+                    var errorMessage = String.format("ERROR: Can not move enemy piece");
                     var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorMessage);
                     connections.broadcastToOne(authToken, notification);
                 }
-
-
-
-
-            } else {
-                var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
-                connections.broadcastToOne(username, notification);
+            }else{
+                var errorMessage = String.format("ERROR: Observer can not make a move");
+                var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorMessage);
+                connections.broadcastToOne(authToken, notification);
             }
         }else{
             connections.add(authToken, session);
