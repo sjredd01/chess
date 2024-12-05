@@ -5,53 +5,56 @@ import websocket.messages.ServerMessage;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ConnectionManager {
-    public final ConcurrentHashMap<String, Connection> connections = new ConcurrentHashMap<>();
+    public final ConcurrentHashMap<Integer, ArrayList<Connection>> connections = new ConcurrentHashMap<>();
 
-    public void add(String visitor, Session session){
+    public void add(Integer gameID, String visitor, Session session){
         var connection = new Connection(visitor, session);
-        connections.put(visitor, connection);
+
+        if(connections.contains(gameID)){
+            var inGame = connections.get(gameID);
+            inGame.add(connection);
+            inGame.add(gameID, connection);
+        }else{
+            ArrayList<Connection> gamePlayer = new ArrayList<>();
+            gamePlayer.add(connection);
+            connections.put(gameID, gamePlayer);
+        }
+
     }
 
     public void remove(String visitor){
-        connections.remove(visitor);
-    }
-
-    public void broadcast(String excludeVisitor, ServerMessage message) throws IOException {
-        var removedList = new ArrayList<Connection>();
-
-        for(var con : connections.values()){
-            if(con.session.isOpen()){
-                if(!con.visitor.equals(excludeVisitor)){
-                    con.send(message.toString());
-                }
-            }else{
-                removedList.add(con);
-            }
-        }
-
-        for(var con : removedList){
-            connections.remove(con.visitor);
+        for(var gameConnections : connections.values()){
+            gameConnections.removeIf(connection -> connection.visitor.equals(visitor));
         }
     }
 
-    public void broadcastToOne(String visitor, ServerMessage message) throws IOException {
-        var removedList = new ArrayList<Connection>();
+    public void broadcast(Integer gameid, String excludeVisitor, ServerMessage message) throws IOException {
+        var inGame = connections.get(gameid);
 
-        for(var con : connections.values()){
-            if(con.session.isOpen()){
-                if(con.visitor.equals(visitor)){
-                    con.send(message.toString());
+        for(var conn : inGame){
+            if(conn.session.isOpen()){
+                if(!conn.visitor.equals(excludeVisitor)){
+                    conn.send(message.toString());
                 }
-            }else{
-                removedList.add(con);
             }
         }
 
-        for(var con : removedList){
-            connections.remove(con.visitor);
+    }
+
+    public void broadcastToOne(Integer gameid, String visitor, ServerMessage message) throws IOException {
+        var inGame = connections.get(gameid);
+
+        for(var conn : inGame){
+            if(conn.session.isOpen()){
+                if(conn.visitor.equals(visitor)){
+                    conn.send(message.toString());
+                }
+            }
         }
+
     }
 }

@@ -32,9 +32,9 @@ public class WebSocketFacade extends Endpoint {
                 @Override
                 public void onMessage(String message) {
                     ServerMessage notification = new Gson().fromJson(message, ServerMessage.class);
-                    if(notification.getGame() != null){
+//                    if(notification.getGame() != null){
                         game = notification.getGame();
-                    }
+//                    }
                     notificationHandler.notify(notification);
                 }
             });
@@ -62,6 +62,7 @@ public class WebSocketFacade extends Endpoint {
         try{
             var action = new UserGameCommand(UserGameCommand.CommandType.LEAVE, username, gameID, null);
             this.session.getBasicRemote().sendText(new Gson().toJson(action));
+            this.session.close();
         } catch (IOException e) {
             throw new ResponseException(500, e.getMessage());
         }
@@ -71,6 +72,7 @@ public class WebSocketFacade extends Endpoint {
         try{
             var action = new UserGameCommand(UserGameCommand.CommandType.RESIGN, username, gameID, null);
             this.session.getBasicRemote().sendText(new Gson().toJson(action));
+            this.session.close();
         } catch (IOException e) {
             throw new ResponseException(500, e.getMessage());
         }

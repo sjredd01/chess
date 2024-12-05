@@ -1,7 +1,5 @@
 package server.websocket;
 
-
-
 import chess.ChessGame;
 import chess.ChessMove;
 import chess.InvalidMoveException;
@@ -49,7 +47,7 @@ public class WebSocketHandler {
             DataAccessException, IOException, InvalidMoveException {
 
         if (!authorized(authToken)) {
-            handleUnauthorized(authToken, session);
+            handleUnauthorized(gameID, authToken, session);
             return;
         }
 
@@ -58,7 +56,7 @@ public class WebSocketHandler {
         ChessGame game = gameInPlay.game();
 
         if (!isUserPartOfGame(username, gameInPlay)) {
-            sendError(authToken, "ERROR: Observer can not make a move");
+            sendError(authToken, "ERROR: Observer can not make a move", gameID);
             return;
         }
 
@@ -66,17 +64,17 @@ public class WebSocketHandler {
         ChessGame.TeamColor enemyTeam = getEnemyTeam(userTeam);
 
         if (!isUserPiece(userTeam, move, game)) {
-            sendError(authToken, "ERROR: Can not move enemy piece");
+            sendError(authToken, "ERROR: Can not move enemy piece", gameID);
             return;
         }
 
         if (game.checkGameStatus()) {
-            sendError(authToken, "ERROR: Can not play on a game that finished");
+            sendError(authToken, "ERROR: Can not play on a game that finished", gameID);
             return;
         }
 
         if (!isValidMove(move, game)) {
-            sendError(authToken, "ERROR: Invalid move");
+            sendError(authToken, "ERROR: Invalid move", gameID);
             return;
         }
 
@@ -86,13 +84,13 @@ public class WebSocketHandler {
             updateGameState(gameID, gameInPlay, game);
             broadcastMoveNotifications(authToken, userTeam, move, game, enemyTeam, gameID);
         } catch (InvalidMoveException e) {
-            sendError(authToken, "ERROR: Wrong turn");
+            sendError(authToken, "ERROR: Wrong turn", gameID);
         }
     }
 
-    private void handleUnauthorized(String authToken, Session session) throws IOException {
-        connections.add(authToken, session);
-        sendError(authToken, "ERROR: Unauthorized");
+    private void handleUnauthorized(int gameID, String authToken, Session session) throws IOException {
+        connections.add(gameID, authToken, session);
+        sendError(authToken, "ERROR: Unauthorized", gameID);
         connections.remove(authToken);
     }
 
@@ -134,35 +132,35 @@ public class WebSocketHandler {
             throws IOException, ResponseException, DataAccessException {
         GameData updatedGame = gameDAO.getGame(gameID);
         var notification = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, updatedGame);
-        connections.broadcast("", notification);
+        connections.broadcast(gameID,"", notification);
 
         String message = String.format("message: " + userTeam + " team made move " + move);
         var notificationForMove = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
-        connections.broadcast(authToken, notificationForMove);
+        connections.broadcast(gameID,authToken, notificationForMove);
 
-        sendCheckStatusNotifications(game, enemyTeam);
+        sendCheckStatusNotifications(game, enemyTeam, gameID);
     }
 
-    private void sendCheckStatusNotifications(ChessGame game, ChessGame.TeamColor enemyTeam) throws IOException {
+    private void sendCheckStatusNotifications(ChessGame game, ChessGame.TeamColor enemyTeam, int gameID) throws IOException {
         if (game.isInCheck(enemyTeam)) {
-            sendCheckNotification("Check");
+            sendCheckNotification("Check", gameID);
         } else if (game.isInCheckmate(enemyTeam)) {
-            sendCheckNotification("Checkmate");
+            sendCheckNotification("Checkmate", gameID);
             game.endGame();
         } else if (game.isInStalemate(enemyTeam)) {
-            sendCheckNotification("Stalemate");
+            sendCheckNotification("Stalemate", gameID);
             game.endGame();
         }
     }
 
-    private void sendCheckNotification(String message) throws IOException {
+    private void sendCheckNotification(String message, int gameID) throws IOException {
         var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
-        connections.broadcast("", notification);
+        connections.broadcast( gameID,"", notification);
     }
 
-    private void sendError(String authToken, String errorMessage) throws IOException {
+    private void sendError(String authToken, String errorMessage, int gameID) throws IOException {
         var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorMessage);
-        connections.broadcastToOne(authToken, notification);
+        connections.broadcastToOne(gameID, authToken, notification);
     }
 
 
@@ -177,17 +175,17 @@ public class WebSocketHandler {
                 GameData newGame = new GameData(gameID, gameInPlay.whiteUsername(), gameInPlay.blackUsername(), gameInPlay.gameName(), updatedGame);
                 gameDAO.updateGame(newGame);
                 var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
-                connections.broadcast("", notification);
+                connections.broadcast(gameID,"", notification);
                 connections.remove(authToken);
             } else {
                 var errorMessage = String.format("ERROR: Can not play on a game that finished");
                 var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorMessage);
-                connections.broadcastToOne(authToken, notification);
+                connections.broadcastToOne(gameID, authToken, notification);
             }
         }else{
             var errorMessage = String.format("ERROR: Observer can not resign");
             var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorMessage);
-            connections.broadcastToOne(authToken, notification);
+            connections.broadcastToOne(gameID, authToken, notification);
         }
     }
 
@@ -207,7 +205,7 @@ public class WebSocketHandler {
 
         var message = String.format("message: " + username + " has left the game");
         var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
-        connections.broadcast(authToken, notification);
+        connections.broadcast(gameID,authToken, notification);
         connections.remove(authToken);
     }
 
@@ -215,15 +213,15 @@ public class WebSocketHandler {
 
         if(authorized(authToken)) {
             try {
-                connections.add(authToken, session);
+                connections.add(gameID, authToken, session);
                 var message = String.format("message: " + authToken + " has entered the game");
                 GameData game = gameDAO.getGame(gameID);
                 var notification = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, game);
                 var notification1 = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
 
                 try {
-                    connections.broadcastToOne(authToken, notification);
-                    connections.broadcast(authToken, notification1);
+                    connections.broadcastToOne(gameID, authToken, notification);
+                    connections.broadcast(gameID, authToken, notification1);
                 } catch (IOException e) {
                     System.err.println("Error in broadcasting message to user");
                 }
@@ -231,18 +229,18 @@ public class WebSocketHandler {
             } catch (RuntimeException e) {
                 var errorMessage = String.format("ERROR: Game does not exist!!!!");
                 var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorMessage);
-                connections.broadcast("", notification);
+                connections.broadcastToOne(gameID, authToken, notification);
                 throw new RuntimeException(e);
             } catch (ResponseException | DataAccessException e) {
                 var errorMessage = String.format("ERROR: Game does not exist");
                 var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorMessage);
-                connections.broadcastToOne(authToken, notification);
+                connections.broadcastToOne(gameID, authToken, notification);
             }
         }else{
-            connections.add(authToken, session);
+            connections.add(gameID, authToken, session);
             var errorMessage = String.format("ERROR: Unauthorized");
             var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorMessage);
-            connections.broadcastToOne(authToken, notification);
+            connections.broadcastToOne(gameID, authToken, notification);
             connections.remove(authToken);
         }
 
