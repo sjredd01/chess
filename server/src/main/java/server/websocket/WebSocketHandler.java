@@ -129,7 +129,9 @@ public class WebSocketHandler {
         gameDAO.updateGame(newGame);
     }
 
-    private void broadcastMoveNotifications(String authToken, ChessGame.TeamColor userTeam, ChessMove move, ChessGame game, ChessGame.TeamColor enemyTeam, int gameID) throws IOException, ResponseException, DataAccessException {
+    private void broadcastMoveNotifications(String authToken, ChessGame.TeamColor userTeam,
+                                            ChessMove move, ChessGame game, ChessGame.TeamColor enemyTeam, int gameID)
+            throws IOException, ResponseException, DataAccessException {
         GameData updatedGame = gameDAO.getGame(gameID);
         var notification = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, updatedGame);
         connections.broadcast("", notification);
