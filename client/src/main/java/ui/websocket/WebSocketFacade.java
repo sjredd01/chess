@@ -32,7 +32,7 @@ public class WebSocketFacade extends Endpoint {
                 @Override
                 public void onMessage(String message) {
                     ServerMessage notification = new Gson().fromJson(message, ServerMessage.class);
-                    if(notification.getServerMessageType() == ServerMessage.ServerMessageType.LOAD_GAME){
+                    if(notification.getGame() != null){
                         game = notification.getGame();
                     }
                     notificationHandler.notify(notification);
@@ -45,6 +45,7 @@ public class WebSocketFacade extends Endpoint {
 
     @Override
     public void onOpen(Session session, EndpointConfig endpointConfig) {
+        System.out.println("WebSocket connection established!");
     }
 
     public void joinGame(String username, Integer gameId) throws ResponseException {

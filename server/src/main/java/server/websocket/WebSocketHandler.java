@@ -24,24 +24,23 @@ import java.io.IOException;
 @WebSocket
 public class WebSocketHandler {
     private final ConnectionManager connections = new ConnectionManager();
-    private GameDAO gameDAO;
-    private AuthDAO authDAO;
+    private final GameDAO gameDAO;
+    private final AuthDAO authDAO;
     private UserDAO userDAO;
 
-    public WebSocketHandler(GameDAO gameDAO, AuthDAO authDAO, UserDAO userDAO){
-        gameDAO = this.gameDAO;
-        authDAO = this.authDAO;
-        userDAO = this.userDAO;
+    public WebSocketHandler(GameDAO gameDAO1, AuthDAO authDAO1, UserDAO userDAO){
+        gameDAO = gameDAO1;
+        authDAO = authDAO1;
     }
 
     @OnWebSocketMessage
     public void onMessage(Session session, String message) throws IOException, ResponseException, DataAccessException, InvalidMoveException {
         UserGameCommand action = new Gson().fromJson(message, UserGameCommand.class);
         switch (action.getCommandType()){
-            case CONNECT  -> enter(action.getUsername(), action.getGameID(), session);
-            case LEAVE -> leave(action.getUsername(), action.getGameID(), session);
-            case RESIGN -> resign(action.getUsername(), action.getGameID(), session);
-            case MAKE_MOVE -> makeMove(action.getUsername(), action.getGameID(), action.getMove(), session);
+            case CONNECT  -> enter(action.getAuthToken(), action.getGameID(), session);
+            case LEAVE -> leave(action.getAuthToken(), action.getGameID(), session);
+            case RESIGN -> resign(action.getAuthToken(), action.getGameID(), session);
+            case MAKE_MOVE -> makeMove(action.getAuthToken(), action.getGameID(), action.getMove(), session);
         }
     }
 
@@ -134,17 +133,23 @@ public class WebSocketHandler {
         connections.broadcast(username, notification);
     }
 
-    private void enter(String username, int gameID, Session session) throws IOException {
+    private void enter(String authToken, int gameID, Session session) throws IOException, ResponseException, DataAccessException {
 
         try{
-            connections.add(username, session);
-            var message = String.format(username + " has entered the game");
+            connections.add(authToken, session);
+            var message = String.format("message: " +authToken + " has entered the game");
             GameData game = gameDAO.getGame(gameID);
             var notification = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, game);
-            var notification1 = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+            var notification1 = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
 
-            connections.broadcastToOne(username, notification);
-            connections.broadcast(username, notification1);
+//            connections.broadcastToOne(authToken, notification);
+//            connections.broadcast("", notification1);
+            try{
+                connections.broadcastToOne(authToken, notification);
+                connections.broadcast(authToken, notification1);
+            }catch (IOException e){
+                System.err.println("Error in broadcasting message to user");
+            }
 
         } catch (RuntimeException e) {
             var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR);

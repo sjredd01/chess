@@ -211,7 +211,7 @@ public class ChessClient {
 
             state = State.GAMEPLAY;
             ws = new WebSocketFacade(serverURL, notificationHandler);
-            ws.observeGame(username1, gameID);
+            ws.observeGame(username1, gameToJoin);
 
             game = ws.getGame();
             printBoard = new PrintBoard(game.game());
@@ -230,6 +230,7 @@ public class ChessClient {
     private String resignGame() throws ResponseException {
         ws = new WebSocketFacade(serverURL, notificationHandler);
         ws.resignGame(username1);
+        state = State.LOGGEDIN;
 
         return username1 + " has resigned the game";
     }
@@ -237,6 +238,7 @@ public class ChessClient {
     private String leaveGame() throws ResponseException {
         ws = new WebSocketFacade(serverURL, notificationHandler);
         ws.leaveGame(username1);
+        state = State.LOGGEDIN;
 
         return username1 + " has left the game";
     }
@@ -274,7 +276,7 @@ public class ChessClient {
             server.joinGame(gameToJoin, teamColor);
             state = State.GAMEPLAY;
             ws = new WebSocketFacade(serverURL, notificationHandler);
-            ws.joinGame(username1, gameID);
+            ws.joinGame(username1, gameToJoin);
 
             game = ws.getGame();
             printBoard = new PrintBoard(game.game());
