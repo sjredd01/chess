@@ -48,94 +48,121 @@ public class WebSocketHandler {
     private void makeMove(String authToken, Integer gameID, ChessMove move, Session session) throws ResponseException,
             DataAccessException, IOException, InvalidMoveException {
 
-        GameData gameInPlay = gameDAO.getGame(gameID);
-        ChessGame game = gameInPlay.game();
-        ChessGame.TeamColor userTeam = ChessGame.TeamColor.WHITE;
-        ChessGame.TeamColor enemyTeam = ChessGame.TeamColor.BLACK;
-        Boolean validMove = false;
-
-        if(authorized(authToken)){
-            String username = authDAO.getAuth(authToken).username();
-
-            if(username.equals(gameInPlay.blackUsername()) || username.equals(gameInPlay.whiteUsername())) {
-                if (username.equals(gameInPlay.blackUsername())) {
-                    userTeam = ChessGame.TeamColor.BLACK;
-                    enemyTeam = ChessGame.TeamColor.WHITE;
-                }
-                if(gameInPlay.game().getBoard().getPiece(move.getStartPosition()).getTeamColor() == userTeam) {
-                    if (!game.checkGameStatus()) {
-                        for (ChessMove moves : game.validMoves(move.getStartPosition())) {
-                            if (moves.equals(move)) {
-                                try {
-                                    game.makeMove(move);
-                                    game.setTeamTurn(enemyTeam);
-                                    GameData newGame =
-                                            new GameData(gameID, gameInPlay.whiteUsername(), gameInPlay.blackUsername(), gameInPlay.gameName(), game);
-                                    gameDAO.updateGame(newGame);
-                                    GameData updatedGame = gameDAO.getGame(gameID);
-                                    var notification = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, updatedGame);
-                                    connections.broadcast("", notification);
-                                    var message = String.format("message: " + userTeam + " team made move " + move);
-                                    var notificationForMove = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
-                                    connections.broadcast(authToken, notificationForMove);
-
-                                    if (game.isInCheck(enemyTeam)) {
-                                        var message1 = String.format("Check");
-                                        var notification1 = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message1);
-                                        connections.broadcast("", notification1);
-                                    }else if (game.isInCheckmate(enemyTeam)) {
-                                        var message2 = String.format("Checkmate");
-                                        var notification2 = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message2);
-                                        game.endGame();
-                                        connections.broadcast("", notification2);
-                                    }
-
-                                    if (game.isInStalemate(enemyTeam)) {
-                                        var message3 = String.format("Checkmate");
-                                        var notification3 = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message3);
-                                        game.endGame();
-                                        connections.broadcast("", notification3);
-                                    }
-                                } catch (InvalidMoveException e) {
-                                    var errorMessage = String.format("ERROR: Wrong turn");
-                                    var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorMessage);
-                                    connections.broadcastToOne(authToken, notification);
-                                }
-                            }
-
-                            validMove = true;
-                        }
-
-                        if (!validMove) {
-                            var errorMessage = String.format("ERROR: Invalid move");
-                            var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorMessage);
-                            connections.broadcastToOne(authToken, notification);
-                        }
-
-                    } else {
-                        var errorMessage = String.format("ERROR: Can not play on a game that finished");
-                        var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorMessage);
-                        connections.broadcastToOne(authToken, notification);
-                    }
-                }else{
-                    var errorMessage = String.format("ERROR: Can not move enemy piece");
-                    var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorMessage);
-                    connections.broadcastToOne(authToken, notification);
-                }
-            }else{
-                var errorMessage = String.format("ERROR: Observer can not make a move");
-                var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorMessage);
-                connections.broadcastToOne(authToken, notification);
-            }
-        }else{
-            connections.add(authToken, session);
-            var errorMessage1 = String.format("ERROR: Unauthorized");
-            var notification1 = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorMessage1);
-            connections.broadcastToOne(authToken, notification1);
-            connections.remove(authToken);
+        if (!authorized(authToken)) {
+            handleUnauthorized(authToken, session);
+            return;
         }
 
+        String username = authDAO.getAuth(authToken).username();
+        GameData gameInPlay = gameDAO.getGame(gameID);
+        ChessGame game = gameInPlay.game();
+
+        if (!isUserPartOfGame(username, gameInPlay)) {
+            sendError(authToken, "ERROR: Observer can not make a move");
+            return;
+        }
+
+        ChessGame.TeamColor userTeam = getUserTeam(username, gameInPlay);
+        ChessGame.TeamColor enemyTeam = getEnemyTeam(userTeam);
+
+        if (!isUserPiece(userTeam, move, game)) {
+            sendError(authToken, "ERROR: Can not move enemy piece");
+            return;
+        }
+
+        if (game.checkGameStatus()) {
+            sendError(authToken, "ERROR: Can not play on a game that finished");
+            return;
+        }
+
+        if (!isValidMove(move, game)) {
+            sendError(authToken, "ERROR: Invalid move");
+            return;
+        }
+
+        try {
+            game.makeMove(move);
+            game.setTeamTurn(enemyTeam);
+            updateGameState(gameID, gameInPlay, game);
+            broadcastMoveNotifications(authToken, userTeam, move, game, enemyTeam, gameID);
+        } catch (InvalidMoveException e) {
+            sendError(authToken, "ERROR: Wrong turn");
+        }
     }
+
+    private void handleUnauthorized(String authToken, Session session) throws IOException {
+        connections.add(authToken, session);
+        sendError(authToken, "ERROR: Unauthorized");
+        connections.remove(authToken);
+    }
+
+    private boolean isUserPartOfGame(String username, GameData gameInPlay) {
+        return username.equals(gameInPlay.blackUsername()) || username.equals(gameInPlay.whiteUsername());
+    }
+
+    private ChessGame.TeamColor getUserTeam(String username, GameData gameInPlay) {
+        if (username.equals(gameInPlay.blackUsername())) {
+            return ChessGame.TeamColor.BLACK;
+        }
+        return ChessGame.TeamColor.WHITE;
+    }
+
+    private ChessGame.TeamColor getEnemyTeam(ChessGame.TeamColor userTeam) {
+        return userTeam == ChessGame.TeamColor.WHITE ? ChessGame.TeamColor.BLACK : ChessGame.TeamColor.WHITE;
+    }
+
+    private boolean isUserPiece(ChessGame.TeamColor userTeam, ChessMove move, ChessGame game) {
+        return game.getBoard().getPiece(move.getStartPosition()).getTeamColor() == userTeam;
+    }
+
+    private boolean isValidMove(ChessMove move, ChessGame game) {
+        for (ChessMove validMove : game.validMoves(move.getStartPosition())) {
+            if (validMove.equals(move)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void updateGameState(Integer gameID, GameData gameInPlay, ChessGame game) throws DataAccessException, ResponseException {
+        GameData newGame = new GameData(gameID, gameInPlay.whiteUsername(), gameInPlay.blackUsername(), gameInPlay.gameName(), game);
+        gameDAO.updateGame(newGame);
+    }
+
+    private void broadcastMoveNotifications(String authToken, ChessGame.TeamColor userTeam, ChessMove move, ChessGame game, ChessGame.TeamColor enemyTeam, int gameID) throws IOException, ResponseException, DataAccessException {
+        GameData updatedGame = gameDAO.getGame(gameID);
+        var notification = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, updatedGame);
+        connections.broadcast("", notification);
+
+        String message = String.format("message: " + userTeam + " team made move " + move);
+        var notificationForMove = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
+        connections.broadcast(authToken, notificationForMove);
+
+        sendCheckStatusNotifications(game, enemyTeam);
+    }
+
+    private void sendCheckStatusNotifications(ChessGame game, ChessGame.TeamColor enemyTeam) throws IOException {
+        if (game.isInCheck(enemyTeam)) {
+            sendCheckNotification("Check");
+        } else if (game.isInCheckmate(enemyTeam)) {
+            sendCheckNotification("Checkmate");
+            game.endGame();
+        } else if (game.isInStalemate(enemyTeam)) {
+            sendCheckNotification("Stalemate");
+            game.endGame();
+        }
+    }
+
+    private void sendCheckNotification(String message) throws IOException {
+        var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
+        connections.broadcast("", notification);
+    }
+
+    private void sendError(String authToken, String errorMessage) throws IOException {
+        var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorMessage);
+        connections.broadcastToOne(authToken, notification);
+    }
+
 
     private void resign(String authToken, int gameID, Session session) throws ResponseException, DataAccessException, IOException {
         String username = authDAO.getAuth(authToken).username();
