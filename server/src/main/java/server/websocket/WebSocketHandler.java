@@ -52,6 +52,7 @@ public class WebSocketHandler {
         ChessGame game = gameInPlay.game();
         ChessGame.TeamColor userTeam = ChessGame.TeamColor.WHITE;
         ChessGame.TeamColor enemyTeam = ChessGame.TeamColor.BLACK;
+        Boolean validMove = false;
 
 
         if(authorized(authToken)){
@@ -99,10 +100,17 @@ public class WebSocketHandler {
                             connections.broadcast("", notification3);
                         }
                     }
+
+                    validMove = true;
                 }
 
-//            var invalidMoveNotification = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
-//            connections.broadcastToOne(username, invalidMoveNotification);
+                if(!validMove){
+                    var errorMessage = String.format("ERROR: Invalid move");
+                    var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorMessage);
+                    connections.broadcastToOne(authToken, notification);
+                }
+
+
 
 
             } else {
