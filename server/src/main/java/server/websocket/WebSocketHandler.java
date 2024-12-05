@@ -72,7 +72,8 @@ public class WebSocketHandler {
                     GameData updatedGame = gameDAO.getGame(gameID);
                     var notification = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, updatedGame);
                     connections.broadcast("", notification);
-                    var notificationForMove = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+                    var message = String.format("message: " + userTeam + " team made move " + move);
+                    var notificationForMove = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
                     connections.broadcast(username, notificationForMove);
 
                     if(game.isInCheck(enemyTeam)){
@@ -94,8 +95,8 @@ public class WebSocketHandler {
                 }
             }
 
-            var invalidMoveNotification = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
-            connections.broadcastToOne(username, invalidMoveNotification);
+//            var invalidMoveNotification = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
+//            connections.broadcastToOne(username, invalidMoveNotification);
 
 
 
