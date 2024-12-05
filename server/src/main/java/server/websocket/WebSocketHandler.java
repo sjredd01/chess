@@ -29,9 +29,10 @@ public class WebSocketHandler {
     private final AuthDAO authDAO;
     private UserDAO userDAO;
 
-    public WebSocketHandler(GameDAO gameDAO1, AuthDAO authDAO1, UserDAO userDAO){
+    public WebSocketHandler(GameDAO gameDAO1, AuthDAO authDAO1, UserDAO userDAO1){
         gameDAO = gameDAO1;
         authDAO = authDAO1;
+        userDAO = userDAO1;
     }
 
     @OnWebSocketMessage
@@ -45,64 +46,74 @@ public class WebSocketHandler {
         }
     }
 
-    private void makeMove(String username, Integer gameID, ChessMove move, Session session) throws ResponseException, DataAccessException, IOException, InvalidMoveException {
+    private void makeMove(String authToken, Integer gameID, ChessMove move, Session session) throws ResponseException, DataAccessException, IOException, InvalidMoveException {
+
         GameData gameInPlay = gameDAO.getGame(gameID);
         ChessGame game = gameInPlay.game();
         ChessGame.TeamColor userTeam = ChessGame.TeamColor.WHITE;
         ChessGame.TeamColor enemyTeam = ChessGame.TeamColor.BLACK;
 
-        if(username.equals(gameInPlay.blackUsername())){
-            userTeam = ChessGame.TeamColor.BLACK;
-            enemyTeam = ChessGame.TeamColor.WHITE;
-        }
 
-        if(!game.checkGameStatus()){
-            if(game.getTeamTurn() != userTeam){
-                var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
-                connections.broadcastToOne(username, notification);
+        if(authorized(authToken)){
+            String username = authDAO.getAuth(authToken).username();
+
+            if (username.equals(gameInPlay.blackUsername())) {
+                userTeam = ChessGame.TeamColor.BLACK;
+                enemyTeam = ChessGame.TeamColor.WHITE;
             }
 
+            if (!game.checkGameStatus()) {
+                if (game.getTeamTurn() != userTeam) {
+                    var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
+                    connections.broadcastToOne(username, notification);
+                }
 
-            for(ChessMove moves : game.validMoves(move.getStartPosition())){
-                if(moves.equals(move)){
-                    game.makeMove(move);
-                    game.setTeamTurn(enemyTeam);
-                    GameData newGame = new GameData(gameID, gameInPlay.whiteUsername(), gameInPlay.blackUsername(), gameInPlay.gameName(), game);
-                    gameDAO.updateGame(newGame);
-                    GameData updatedGame = gameDAO.getGame(gameID);
-                    var notification = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, updatedGame);
-                    connections.broadcast("", notification);
-                    var message = String.format("message: " + userTeam + " team made move " + move);
-                    var notificationForMove = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
-                    connections.broadcast(username, notificationForMove);
 
-                    if(game.isInCheck(enemyTeam)){
-                        var notification1 = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
-                        connections.broadcast("", notification1);
-                    }
+                for (ChessMove moves : game.validMoves(move.getStartPosition())) {
+                    if (moves.equals(move)) {
+                        game.makeMove(move);
+                        game.setTeamTurn(enemyTeam);
+                        GameData newGame = new GameData(gameID, gameInPlay.whiteUsername(), gameInPlay.blackUsername(), gameInPlay.gameName(), game);
+                        gameDAO.updateGame(newGame);
+                        GameData updatedGame = gameDAO.getGame(gameID);
+                        var notification = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, updatedGame);
+                        connections.broadcast("", notification);
+                        var message = String.format("message: " + userTeam + " team made move " + move);
+                        var notificationForMove = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
+                        connections.broadcast(authToken, notificationForMove);
 
-                    if(game.isInCheckmate(enemyTeam)){
-                        var notification2 = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
-                        game.endGame();
-                        connections.broadcast("", notification2);
-                    }
+                        if (game.isInCheck(enemyTeam)) {
+                            var notification1 = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+                            connections.broadcast("", notification1);
+                        }
 
-                    if(game.isInStalemate(enemyTeam)){
-                        var notification3 = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
-                        game.endGame();
-                        connections.broadcast("", notification3);
+                        if (game.isInCheckmate(enemyTeam)) {
+                            var notification2 = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+                            game.endGame();
+                            connections.broadcast("", notification2);
+                        }
+
+                        if (game.isInStalemate(enemyTeam)) {
+                            var notification3 = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+                            game.endGame();
+                            connections.broadcast("", notification3);
+                        }
                     }
                 }
-            }
 
 //            var invalidMoveNotification = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
 //            connections.broadcastToOne(username, invalidMoveNotification);
 
 
-
+            } else {
+                var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
+                connections.broadcastToOne(username, notification);
+            }
         }else{
-            var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
-            connections.broadcastToOne(username, notification);
+            connections.add(authToken, session);
+            var errorMessage = String.format("ERROR: Unauthorized");
+            var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorMessage);
+            connections.broadcastToOne(authToken, notification);
         }
 
     }
