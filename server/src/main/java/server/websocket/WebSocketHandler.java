@@ -16,7 +16,6 @@ import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import websocket.commands.UserGameCommand;
-import websocket.messages.ErrorMessage;
 import websocket.messages.ServerMessage;
 
 
@@ -114,7 +113,7 @@ public class WebSocketHandler {
                     } else {
                         var errorMessage = String.format("ERROR: Can not play on a game that finished");
                         var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorMessage);
-                        connections.broadcastToOne(username, notification);
+                        connections.broadcastToOne(authToken, notification);
                     }
                 }else{
                     var errorMessage = String.format("ERROR: Can not move enemy piece");
@@ -135,12 +134,29 @@ public class WebSocketHandler {
 
     }
 
-    private void resign(String username, int gameID, Session session) throws ResponseException, DataAccessException, IOException {
-        connections.remove(username);
-        //var message = String.format("resigned the game");
-        gameDAO.getGame(gameID).game().endGame();
-        var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
-        connections.broadcast("", notification);
+    private void resign(String authToken, int gameID, Session session) throws ResponseException, DataAccessException, IOException {
+        String username = authDAO.getAuth(authToken).username();
+        GameData gameInPlay = gameDAO.getGame(gameID);
+        if(username.equals(gameInPlay.blackUsername()) || username.equals(gameInPlay.whiteUsername())) {
+            ChessGame updatedGame = gameInPlay.game();
+            if (!updatedGame.checkGameStatus()) {
+                var message = String.format("resigned the game");
+                updatedGame.endGame();
+                GameData newGame = new GameData(gameID, gameInPlay.whiteUsername(), gameInPlay.blackUsername(), gameInPlay.gameName(), updatedGame);
+                gameDAO.updateGame(newGame);
+                var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
+                connections.broadcast("", notification);
+                connections.remove(authToken);
+            } else {
+                var errorMessage = String.format("ERROR: Can not play on a game that finished");
+                var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorMessage);
+                connections.broadcastToOne(authToken, notification);
+            }
+        }else{
+            var errorMessage = String.format("ERROR: Observer can not resign");
+            var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorMessage);
+            connections.broadcastToOne(authToken, notification);
+        }
     }
 
     private void leave(String username, int gameID, Session session) throws IOException, ResponseException, DataAccessException {
