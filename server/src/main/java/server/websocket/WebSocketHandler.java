@@ -159,24 +159,24 @@ public class WebSocketHandler {
         }
     }
 
-    private void leave(String username, int gameID, Session session) throws IOException, ResponseException, DataAccessException {
-        connections.remove(username);
+    private void leave(String authToken, int gameID, Session session) throws IOException, ResponseException, DataAccessException {
+        String username = authDAO.getAuth(authToken).username();
+
         GameData gameInPlay = gameDAO.getGame(gameID);
         String gameName = gameInPlay.gameName();
         ChessGame game = gameInPlay.game();
         if(username.equals(gameInPlay.whiteUsername())){
-            GameData newGame = new GameData(gameID, "", gameInPlay.blackUsername(), gameName, game);
+            GameData newGame = new GameData(gameID, null, gameInPlay.blackUsername(), gameName, game);
             gameDAO.updateGame(newGame);
         } else if (username.equals(gameInPlay.blackUsername())) {
-            GameData newGame = new GameData(gameID, gameInPlay.whiteUsername(), "", gameName, game);
+            GameData newGame = new GameData(gameID, gameInPlay.whiteUsername(), null, gameName, game);
             gameDAO.updateGame(newGame);
-        }else{
-            var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
-            connections.broadcast(username, notification);
         }
 
-        var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
-        connections.broadcast(username, notification);
+        var message = String.format("message: " + username + " has left the game");
+        var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
+        connections.broadcast(authToken, notification);
+        connections.remove(authToken);
     }
 
     private void enter(String authToken, int gameID, Session session) throws IOException, ResponseException, DataAccessException {
