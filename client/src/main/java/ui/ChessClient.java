@@ -1,6 +1,8 @@
 package ui;
 
 import chess.ChessGame;
+import chess.ChessMove;
+import chess.ChessPiece;
 import chess.ChessPosition;
 import exception.ResponseException;
 import model.GameData;
@@ -13,6 +15,7 @@ import ui.websocket.WebSocketFacade;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Objects;
 
 public class ChessClient {
     private final ServerFacade server;
@@ -80,7 +83,7 @@ public class ChessClient {
                 case "highlight" -> highlightMoves(param);
                 case "observe" -> observeGame(param);
                 case "leave" -> leaveGame();
-//                case "make-move" -> makeMove();
+                case "make-move" -> makeMove(param);
                 case "resign" -> resignGame();
                 case "quit" -> "quit";
                 default -> help();
@@ -88,6 +91,37 @@ public class ChessClient {
         } catch (Exception e) {
             return (e).getMessage();
         }
+    }
+
+    private String makeMove(String[] param) throws ResponseException {
+        if(param.length >= 2){
+            var startPositionChar = param[0];
+            var endPositionChar = param[1];
+            ChessPiece.PieceType promotionPiece = null;
+
+            ChessPosition startPosition = convertToPosition(startPositionChar);
+            ChessPosition endPosition = convertToPosition(endPositionChar);
+
+            if(param.length >= 3){
+                var pieceToPromote = param[3];
+
+                promotionPiece = switch (pieceToPromote) {
+                    case "q" -> ChessPiece.PieceType.QUEEN;
+                    case "b" -> ChessPiece.PieceType.BISHOP;
+                    case "r" -> ChessPiece.PieceType.ROOK;
+                    case "n" -> ChessPiece.PieceType.KNIGHT;
+                    case null, default -> throw new ResponseException(400, "Expected promotion piece (q,b,r,n)");
+                };
+            }
+
+            ChessMove move = new ChessMove(startPosition, endPosition, promotionPiece);
+
+            ws = new WebSocketFacade(serverURL, notificationHandler);
+            ws.makeMove(username1, move);
+
+        }
+
+        throw new ResponseException(400, "Expected <STARTPOSITION> <ENDPOSITION>");
     }
 
     private String highlightMoves(String[] param) throws ResponseException {
@@ -106,37 +140,53 @@ public class ChessClient {
         throw new ResponseException(400, "Expected <POSITION>");
     }
 
+    private int convertToInteger(char input) throws ResponseException {
+        int row;
+
+        if(input == 'a'){
+            row = 0;
+        } else if (input == 'b') {
+            row = 1;
+        }else if (input == 'c') {
+            row = 2;
+        }else if (input == 'd') {
+            row = 3;
+        }else if (input == 'e') {
+            row = 4;
+        }else if (input == 'f') {
+            row = 5;
+        }else if (input == 'g') {
+            row = 6;
+        }else if (input == 'h') {
+            row = 7;
+        }else{
+            throw new ResponseException(400, "Invalid position");
+        }
+
+        return row;
+    }
+
+    private int correctCol(char input) throws ResponseException {
+        int col;
+
+        col = (int) input - 1;
+
+        if(col >= 8){
+            throw new ResponseException(400, "Invalid position");
+        }
+
+        return col;
+    }
+
     private ChessPosition convertToPosition(String input) throws ResponseException {
         ChessPosition position;
         int row;
         int col;
         char[] charOfPosition = input.toCharArray();
 
-        if(charOfPosition[0] == 'a'){
-            row = 0;
-        } else if (charOfPosition[0] == 'b') {
-            row = 1;
-        }else if (charOfPosition[0] == 'c') {
-            row = 2;
-        }else if (charOfPosition[0] == 'd') {
-            row = 3;
-        }else if (charOfPosition[0] == 'e') {
-            row = 4;
-        }else if (charOfPosition[0] == 'f') {
-            row = 5;
-        }else if (charOfPosition[0] == 'g') {
-            row = 6;
-        }else if (charOfPosition[0] == 'h') {
-            row = 7;
-        }else{
-            throw new ResponseException(400, "Invalid position");
-        }
+        row = convertToInteger(charOfPosition[0]);
 
-        col = (int) charOfPosition[1] - 1;
-
-        if(row >= 8 || col >= 8){
-            throw new ResponseException(400, "Invalid position");
-        }
+        col = correctCol(charOfPosition[1]);
 
         position = new ChessPosition(row, col);
 

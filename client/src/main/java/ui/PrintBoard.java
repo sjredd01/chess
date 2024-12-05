@@ -1,8 +1,12 @@
 package ui;
 
 import chess.ChessGame;
+import chess.ChessMove;
 import chess.ChessPiece;
 import chess.ChessPosition;
+
+import java.util.Collection;
+import java.util.HashSet;
 
 import static java.lang.System.out;
 import static ui.EscapeSequences.*;
@@ -20,7 +24,15 @@ public class PrintBoard {
 
     public void printBoard(ChessGame.TeamColor color, ChessPosition position){
         StringBuilder board = new StringBuilder();
+        Collection<ChessMove> possibleMoves = position != null ? game.validMoves(position) : null;
+        HashSet<ChessPosition> possibleSquares = HashSet.newHashSet(possibleMoves != null ? possibleMoves.size() : 0);
         board.append(SET_TEXT_BOLD);
+
+        if(possibleMoves != null){
+            for(ChessMove move : possibleMoves){
+                possibleSquares.add(move.getEndPosition());
+            }
+        }
 
         boolean backwards = color == ChessGame.TeamColor.BLACK;
         int printCount = color == null ? 2 : 1;
@@ -30,7 +42,7 @@ public class PrintBoard {
 
             for(int j = 8; j > 0; j--){
                 int row = !backwards ? j : (j * -1) + 9;
-                board.append(chessBoardRow(row, backwards));
+                board.append(chessBoardRow(row, backwards, position, possibleSquares));
             }
 
             board.append(startRow(backwards));
@@ -56,7 +68,7 @@ public class PrintBoard {
         return board.toString();
     }
 
-    private String chessBoardRow(int row, boolean reverse){
+    private String chessBoardRow(int row, boolean reverse, ChessPosition square, HashSet<ChessPosition> possibleSquares){
         StringBuilder rows = new StringBuilder();
         rows.append(SET_BG_COLOR_BLACK);
         rows.append(SET_TEXT_COLOR_MAGENTA);
@@ -64,7 +76,7 @@ public class PrintBoard {
 
         for (int i = 1; i < 9; i++) {
             int column = !reverse ? i : (i * -1) + 9;
-            rows.append(squaresColor(row, column));
+            rows.append(squaresColor(row, column, square, possibleSquares));
             rows.append(pieceColor(row, column));
         }
 
@@ -78,9 +90,15 @@ public class PrintBoard {
         return rows.toString();
     }
 
-    private String squaresColor(int row, int col){
+    private String squaresColor(int row, int col, ChessPosition position, HashSet<ChessPosition> possibleSquares){
 
-        if (Math.ceilMod(row, 2) == 0) {
+        ChessPosition squares = new ChessPosition(row, col);
+
+        if(squares.equals(position)){
+            return SET_BG_COLOR_GREEN;
+        } else if (possibleSquares.contains(squares)){
+            return SET_BG_COLOR_DARK_GREEN;
+        }else if (Math.ceilMod(row, 2) == 0) {
             if (Math.ceilMod(col, 2) == 0) {
                 return SET_BG_COLOR_RED;
             } else {
