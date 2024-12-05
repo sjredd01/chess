@@ -17,11 +17,20 @@ public class ServerMessage {
 
     private GameData game;
     private String message;
+    private String errorMessage;
+
 
     public ServerMessage(ServerMessageType serverMessageType, String message) {
         this.serverMessageType = serverMessageType;
         this.message = message;
+
+        if(serverMessageType == ServerMessageType.ERROR){
+            this.message = null;
+            this.errorMessage = message;
+        }
+//        this.errorMessage = message;
     }
+
 
     public enum ServerMessageType {
         LOAD_GAME,
@@ -49,6 +58,15 @@ public class ServerMessage {
     public  void setMessage(String message){
         this.message = message;
     }
+
+    public String getErrorMessage(){
+        return errorMessage;
+    }
+
+    public  void setErrorMessage(String message){
+        this.errorMessage = message;
+    }
+
 
     public ServerMessage(ServerMessageType type) {
         this.serverMessageType = type;

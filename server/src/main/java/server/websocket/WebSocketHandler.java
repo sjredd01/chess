@@ -16,6 +16,7 @@ import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import websocket.commands.UserGameCommand;
+import websocket.messages.ErrorMessage;
 import websocket.messages.ServerMessage;
 
 
@@ -142,8 +143,6 @@ public class WebSocketHandler {
             var notification = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, game);
             var notification1 = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
 
-//            connections.broadcastToOne(authToken, notification);
-//            connections.broadcast("", notification1);
             try{
                 connections.broadcastToOne(authToken, notification);
                 connections.broadcast(authToken, notification1);
@@ -152,11 +151,14 @@ public class WebSocketHandler {
             }
 
         } catch (RuntimeException e) {
-            var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
+            var errorMessage = String.format("ERROR: Game does not exist!!!!");
+            var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorMessage);
             connections.broadcast("", notification);
             throw new RuntimeException(e);
         } catch (ResponseException | DataAccessException e) {
-            throw new RuntimeException(e);
+            var errorMessage = String.format("ERROR: Game does not exist");
+            var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorMessage);
+            connections.broadcastToOne(authToken, notification);
         }
 
     }
