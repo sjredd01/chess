@@ -136,31 +136,51 @@ public class WebSocketHandler {
 
     private void enter(String authToken, int gameID, Session session) throws IOException, ResponseException, DataAccessException {
 
-        try{
-            connections.add(authToken, session);
-            var message = String.format("message: " +authToken + " has entered the game");
-            GameData game = gameDAO.getGame(gameID);
-            var notification = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, game);
-            var notification1 = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
+        if(authorized(authToken)) {
+            try {
+                connections.add(authToken, session);
+                var message = String.format("message: " + authToken + " has entered the game");
+                GameData game = gameDAO.getGame(gameID);
+                var notification = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, game);
+                var notification1 = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
 
-            try{
+                try {
+                    connections.broadcastToOne(authToken, notification);
+                    connections.broadcast(authToken, notification1);
+                } catch (IOException e) {
+                    System.err.println("Error in broadcasting message to user");
+                }
+
+            } catch (RuntimeException e) {
+                var errorMessage = String.format("ERROR: Game does not exist!!!!");
+                var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorMessage);
+                connections.broadcast("", notification);
+                throw new RuntimeException(e);
+            } catch (ResponseException | DataAccessException e) {
+                var errorMessage = String.format("ERROR: Game does not exist");
+                var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorMessage);
                 connections.broadcastToOne(authToken, notification);
-                connections.broadcast(authToken, notification1);
-            }catch (IOException e){
-                System.err.println("Error in broadcasting message to user");
             }
-
-        } catch (RuntimeException e) {
-            var errorMessage = String.format("ERROR: Game does not exist!!!!");
-            var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorMessage);
-            connections.broadcast("", notification);
-            throw new RuntimeException(e);
-        } catch (ResponseException | DataAccessException e) {
-            var errorMessage = String.format("ERROR: Game does not exist");
+        }else{
+            connections.add(authToken, session);
+            var errorMessage = String.format("ERROR: Unauthorized");
             var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorMessage);
             connections.broadcastToOne(authToken, notification);
         }
 
+    }
+
+    private boolean authorized(String authToken) throws IOException {
+        boolean authGood = true;
+
+        try{
+            authDAO.getAuth(authToken);
+        } catch (DataAccessException | ResponseException e) {
+            authGood = false;
+            return authGood;
+        }
+
+        return authGood;
     }
 
 }
