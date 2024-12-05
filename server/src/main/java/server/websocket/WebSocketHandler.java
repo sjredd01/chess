@@ -45,7 +45,8 @@ public class WebSocketHandler {
         }
     }
 
-    private void makeMove(String authToken, Integer gameID, ChessMove move, Session session) throws ResponseException, DataAccessException, IOException, InvalidMoveException {
+    private void makeMove(String authToken, Integer gameID, ChessMove move, Session session) throws ResponseException,
+            DataAccessException, IOException, InvalidMoveException {
 
         GameData gameInPlay = gameDAO.getGame(gameID);
         ChessGame game = gameInPlay.game();
@@ -68,7 +69,8 @@ public class WebSocketHandler {
                                 try {
                                     game.makeMove(move);
                                     game.setTeamTurn(enemyTeam);
-                                    GameData newGame = new GameData(gameID, gameInPlay.whiteUsername(), gameInPlay.blackUsername(), gameInPlay.gameName(), game);
+                                    GameData newGame =
+                                            new GameData(gameID, gameInPlay.whiteUsername(), gameInPlay.blackUsername(), gameInPlay.gameName(), game);
                                     gameDAO.updateGame(newGame);
                                     GameData updatedGame = gameDAO.getGame(gameID);
                                     var notification = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, updatedGame);
@@ -127,9 +129,10 @@ public class WebSocketHandler {
             }
         }else{
             connections.add(authToken, session);
-            var errorMessage = String.format("ERROR: Unauthorized");
-            var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorMessage);
-            connections.broadcastToOne(authToken, notification);
+            var errorMessage1 = String.format("ERROR: Unauthorized");
+            var notification1 = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorMessage1);
+            connections.broadcastToOne(authToken, notification1);
+            connections.remove(authToken);
         }
 
     }
@@ -211,6 +214,7 @@ public class WebSocketHandler {
             var errorMessage = String.format("ERROR: Unauthorized");
             var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorMessage);
             connections.broadcastToOne(authToken, notification);
+            connections.remove(authToken);
         }
 
     }
