@@ -190,27 +190,24 @@ public class ChessClient {
 
     private String resignGame() throws ResponseException {
         ws = new WebSocketFacade(serverURL, notificationHandler);
-        ws.resignGame(authToken);
+        ws.resignGame(authToken, currentGameID);
         state = State.LOGGEDIN;
 
-        return username1 + " has resigned the game";
+        return "";
     }
 
     private String leaveGame() throws ResponseException {
         ws = new WebSocketFacade(serverURL, notificationHandler);
-        ws.leaveGame(authToken);
+        ws.leaveGame(authToken, currentGameID);
         state = State.LOGGEDIN;
 
-        return username1 + " has left the game";
+        return "";
     }
 
     private String redrawBoard() throws ResponseException {
         ws = new WebSocketFacade(serverURL, notificationHandler);
         ChessBoard game = ws.getGame();
         printBoard = new PrintBoard(game);
-//        if(username1.equals(game.blackUsername())){
-//            userColor = ChessGame.TeamColor.BLACK;
-//        }
 
         printBoard.printBoard(userColor, null);
 
@@ -222,11 +219,12 @@ public class ChessClient {
             var gameIndex = Integer.parseInt(param[0]);
             var teamColor = param[1].toUpperCase();
 
+            if(teamColor.equals("BLACK")){
+                userColor = ChessGame.TeamColor.BLACK;
+            }
+
             var gameID = games.get(gameIndex - 1).gameID();
 
-//            if(gameIndex == 0){
-//                return "Game does not exist";
-//            }
             currentGameID = gameID;
 
             server.joinGame(gameID, teamColor);
@@ -236,12 +234,8 @@ public class ChessClient {
 
             game = ws.getGame();
             printBoard = new PrintBoard(game);
-//            if(username1.equals(game.blackUsername())){
-//                userColor = ChessGame.TeamColor.BLACK;
-//            }
 
             printBoard.printBoard(userColor, null);
-
 
             return "joined game " + gameID;
         }
@@ -322,5 +316,9 @@ public class ChessClient {
 
         throw new ResponseException(400, "Expected <NAME>");
 
+    }
+
+    public ChessGame.TeamColor getUserColor() {
+        return userColor;
     }
 }

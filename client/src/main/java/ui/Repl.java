@@ -53,7 +53,8 @@ public class Repl implements NotificationHandler {
     private void loadGame(ServerMessage message){
         ChessBoard board = message.getGame();
         PrintBoard printer = new PrintBoard(board);
-        printer.printBoard(ChessGame.TeamColor.BLACK, null);
+        ChessGame.TeamColor team = client.getUserColor();
+        printer.printBoard(team, null);
     }
     private void printError(ServerMessage message) {
         String error = message.getErrorMessage();

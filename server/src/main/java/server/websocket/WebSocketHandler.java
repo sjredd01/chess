@@ -134,7 +134,7 @@ public class WebSocketHandler {
         var notification = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, game.getBoard());
         connections.broadcast(gameID,"", notification);
 
-        String message = String.format("message: " + userTeam + " team made move " + move);
+        String message = String.format("message: " + userTeam + " team moved " + move.getStartPosition().toString() + " to " + move.getEndPosition().toString());
         var notificationForMove = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
         connections.broadcast(gameID, username, notificationForMove);
 
@@ -170,7 +170,7 @@ public class WebSocketHandler {
         if(username.equals(gameInPlay.blackUsername()) || username.equals(gameInPlay.whiteUsername())) {
             ChessGame updatedGame = gameInPlay.game();
             if (!updatedGame.checkGameStatus()) {
-                var message = String.format("resigned the game");
+                var message = String.format(username + "resigned the game");
                 updatedGame.endGame();
                 GameData newGame = new GameData(gameID, gameInPlay.whiteUsername(), gameInPlay.blackUsername(), gameInPlay.gameName(), updatedGame);
                 gameDAO.updateGame(newGame);
@@ -205,8 +205,8 @@ public class WebSocketHandler {
 
         var message = String.format("message: " + username + " has left the game");
         var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
-        connections.broadcast(gameID,username, notification);
-        connections.remove(username);
+        connections.broadcast(gameID, authToken, notification);
+        connections.remove(authToken);
     }
 
     private void enter(String authToken, int gameID, Session session) throws IOException, ResponseException, DataAccessException {
