@@ -10,6 +10,7 @@ import ui.websocket.NotificationHandler;
 import ui.websocket.WebSocketFacade;
 
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Objects;
@@ -21,11 +22,12 @@ public class ChessClient {
     private State state = State.LOGGEDOUT;
     private final NotificationHandler notificationHandler;
     private WebSocketFacade ws;
-    private HashSet<GameDataList> games;
+    private ArrayList<GameDataList> games;
     public static PrintBoard printBoard;
     private ChessGame.TeamColor userColor = ChessGame.TeamColor.WHITE;
     private ChessBoard game;
     private String authToken;
+    private int currentGameID;
 
     public ChessClient(String serverURL, NotificationHandler notificationHandler){
         server = new ServerFacade(serverURL);
@@ -115,7 +117,7 @@ public class ChessClient {
             ChessMove move = new ChessMove(startPosition, endPosition, promotionPiece);
 
             ws = new WebSocketFacade(serverURL, notificationHandler);
-            ws.makeMove(authToken, move);
+            ws.makeMove(authToken, move, currentGameID);
             return "";
         }
         else {
@@ -217,25 +219,20 @@ public class ChessClient {
 
     private String joinGame(String[] param) throws ResponseException, URISyntaxException {
         if(param.length >= 2){
-            var gameID = Integer.parseInt(param[0]);
+            var gameIndex = Integer.parseInt(param[0]);
             var teamColor = param[1].toUpperCase();
-            int gameToJoin = 0;
-            int count = 1;
-            for(var game : games){
-                if(count == gameID){
-                    gameToJoin = game.gameID();
-                }
-                count ++;
-            }
 
-            if(gameToJoin == 0){
-                return "Game does not exist";
-            }
+            var gameID = games.get(gameIndex - 1).gameID();
 
-            server.joinGame(gameToJoin, teamColor);
+//            if(gameIndex == 0){
+//                return "Game does not exist";
+//            }
+            currentGameID = gameID;
+
+            server.joinGame(gameID, teamColor);
             state = State.GAMEPLAY;
             ws = new WebSocketFacade(serverURL, notificationHandler);
-            ws.joinGame(authToken, gameToJoin);
+            ws.joinGame(authToken, gameID);
 
             game = ws.getGame();
             printBoard = new PrintBoard(game);

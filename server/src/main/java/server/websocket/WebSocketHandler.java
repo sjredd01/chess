@@ -52,7 +52,6 @@ public class WebSocketHandler {
         String username = authDAO.getAuth(authToken).username();
         if (username == null) {
             handleUnauthorized(gameID, authToken, session);
-            return;
         }
 
 
@@ -61,7 +60,6 @@ public class WebSocketHandler {
 
         if (!isUserPartOfGame(username, gameInPlay)) {
             sendError(username, "ERROR: Observer can not make a move", gameID);
-            return;
         }
 
         ChessGame.TeamColor userTeam = getUserTeam(username, gameInPlay);
@@ -69,17 +67,15 @@ public class WebSocketHandler {
 
         if (!isUserPiece(userTeam, move, game)) {
             sendError(username, "ERROR: Can not move enemy piece", gameID);
-            return;
+
         }
 
         if (game.checkGameStatus()) {
             sendError(username, "ERROR: Can not play on a game that finished", gameID);
-            return;
         }
 
         if (!isValidMove(move, game)) {
             sendError(username, "ERROR: Invalid move", gameID);
-            return;
         }
 
         try {
@@ -131,30 +127,29 @@ public class WebSocketHandler {
         gameDAO.updateGame(newGame);
     }
 
-    private void broadcastMoveNotifications(String authToken, ChessGame.TeamColor userTeam,
+    private void broadcastMoveNotifications(String username, ChessGame.TeamColor userTeam,
                                             ChessMove move, ChessGame game, ChessGame.TeamColor enemyTeam, int gameID)
             throws IOException, ResponseException, DataAccessException {
-        GameData updatedGame = gameDAO.getGame(gameID);
-        ChessBoard game1 = updatedGame.game().getBoard();
-        var notification = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, game1);
+
+        var notification = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, game.getBoard());
         connections.broadcast(gameID,"", notification);
 
         String message = String.format("message: " + userTeam + " team made move " + move);
         var notificationForMove = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
-        connections.broadcast(gameID,authToken, notificationForMove);
+        connections.broadcast(gameID, username, notificationForMove);
 
         sendCheckStatusNotifications(game, enemyTeam, gameID);
     }
 
     private void sendCheckStatusNotifications(ChessGame game, ChessGame.TeamColor enemyTeam, int gameID) throws IOException {
-        if (game.isInCheck(enemyTeam)) {
-            sendCheckNotification("Check", gameID);
-        } else if (game.isInCheckmate(enemyTeam)) {
+        if (game.isInCheckmate(enemyTeam)) {
             sendCheckNotification("Checkmate", gameID);
             game.endGame();
         } else if (game.isInStalemate(enemyTeam)) {
             sendCheckNotification("Stalemate", gameID);
             game.endGame();
+        }else if (game.isInCheck(enemyTeam)) {
+            sendCheckNotification("Check", gameID);
         }
     }
 

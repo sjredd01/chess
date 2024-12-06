@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.*;
+import java.util.ArrayList;
 import java.util.HashSet;
 
 public class ServerFacade {
@@ -56,9 +57,9 @@ public class ServerFacade {
         return true;
     }
 
-    public HashSet<GameDataList> listGames() {
+    public ArrayList<GameDataList> listGames() {
         var path = "/game";
-        record ListGames(HashSet<GameDataList> games){
+        record ListGames(ArrayList<GameDataList> games){
 
         }
         var request = this.makeRequest("GET", path, null, ListGames.class);

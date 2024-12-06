@@ -14,7 +14,7 @@ public class ConnectionManager {
     public void add(Integer gameID, String visitor, Session session){
         var connection = new Connection(visitor, session);
 
-        if(connections.contains(gameID)){
+        if(connections.containsKey(gameID)){
             var inGame = connections.get(gameID);
             inGame.add(connection);
         }else{
