@@ -36,7 +36,6 @@ public class WebSocketHandler {
     @OnWebSocketMessage
     public void onMessage(Session session, String message) throws IOException, ResponseException, DataAccessException, InvalidMoveException {
         UserGameCommand action = new Gson().fromJson(message, UserGameCommand.class);
-        System.out.println(action.getCommandType());
         switch (action.getCommandType()){
             case CONNECT  -> enter(action.getAuthToken(), action.getGameID(), session);
             case LEAVE -> leave(action.getAuthToken(), action.getGameID(), session);
@@ -47,8 +46,11 @@ public class WebSocketHandler {
 
     private void makeMove(String authToken, Integer gameID, ChessMove move, Session session) throws ResponseException,
             DataAccessException, IOException, InvalidMoveException {
-
-        System.out.println("MAKING MOVE");
+        try {
+            authDAO.getAuth(authToken);
+        } catch (DataAccessException e) {
+            handleUnauthorized(gameID, authToken, session);
+        }
         String username = authDAO.getAuth(authToken).username();
         if (username == null) {
             handleUnauthorized(gameID, authToken, session);
@@ -58,25 +60,19 @@ public class WebSocketHandler {
         GameData gameInPlay = gameDAO.getGame(gameID);
         ChessGame game = gameInPlay.game();
 
-        if (!isUserPartOfGame(username, gameInPlay)) {
-            sendError(username, "ERROR: Observer can not make a move", gameID);
-        }
 
         ChessGame.TeamColor userTeam = getUserTeam(username, gameInPlay);
         ChessGame.TeamColor enemyTeam = getEnemyTeam(userTeam);
 
-        if (!isUserPiece(userTeam, move, game)) {
+        if (!isUserPartOfGame(username, gameInPlay)) {
+            sendError(username, "ERROR: Observer can not make a move", gameID);
+        } else if (!isUserPiece(userTeam, move, game)) {
             sendError(username, "ERROR: Can not move enemy piece", gameID);
-
-        }
-
-        if (game.checkGameStatus()) {
+        } else if (game.checkGameStatus()) {
             sendError(username, "ERROR: Can not play on a game that finished", gameID);
-        }
-
-        if (!isValidMove(move, game)) {
+        } else if (!isValidMove(move, game)) {
             sendError(username, "ERROR: Invalid move", gameID);
-        }
+        } else {
 
         try {
             game.makeMove(move);
@@ -86,6 +82,7 @@ public class WebSocketHandler {
         } catch (InvalidMoveException e) {
             sendError(username, "ERROR: Wrong turn", gameID);
         }
+    }
     }
 
     private void handleUnauthorized(int gameID, String authToken, Session session) throws IOException {
@@ -205,15 +202,14 @@ public class WebSocketHandler {
 
         var message = String.format("message: " + username + " has left the game");
         var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
-        connections.broadcast(gameID, authToken, notification);
-        connections.remove(authToken);
+        connections.broadcast(gameID, username, notification);
+        connections.remove(username);
     }
 
     private void enter(String authToken, int gameID, Session session) throws IOException, ResponseException, DataAccessException {
-        String username = authDAO.getAuth(authToken).username();
-        System.out.println(username);
 
-        if(username != null) {
+        try {
+            String username = authDAO.getAuth(authToken).username();
             try {
                 connections.add(gameID, username, session);
                 var message = String.format("message: " + username + " has entered the game");
@@ -240,12 +236,12 @@ public class WebSocketHandler {
                 var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorMessage);
                 connections.broadcastToOne(gameID, username, notification);
             }
-        }else{
-            connections.add(gameID,username , session);
+        }catch (DataAccessException e){
+            connections.add(gameID, authToken , session);
             var errorMessage = String.format("ERROR: Unauthorized");
             var notification = new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorMessage);
-            connections.broadcastToOne(gameID, username, notification);
-            connections.remove(username);
+            connections.broadcastToOne(gameID, authToken, notification);
+            connections.remove(authToken);
         }
 
     }
