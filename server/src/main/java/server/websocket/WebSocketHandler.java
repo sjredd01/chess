@@ -131,7 +131,8 @@ public class WebSocketHandler {
         var notification = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, game.getBoard());
         connections.broadcast(gameID,"", notification);
 
-        String message = String.format("message: " + userTeam + " team moved " + move.getStartPosition().toString() + " to " + move.getEndPosition().toString());
+        String message = String.format("message: " + userTeam + " team moved " +
+                move.getStartPosition().toString() + " to " + move.getEndPosition().toString());
         var notificationForMove = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
         connections.broadcast(gameID, username, notificationForMove);
 
@@ -244,19 +245,6 @@ public class WebSocketHandler {
             connections.remove(authToken);
         }
 
-    }
-
-    private boolean authorized(String authToken) throws IOException {
-        boolean authGood = true;
-
-        try{
-            authDAO.getAuth(authToken);
-        } catch (DataAccessException | ResponseException e) {
-            authGood = false;
-            return authGood;
-        }
-
-        return authGood;
     }
 
 }
