@@ -1,6 +1,9 @@
 package ui;
 
 
+import chess.ChessBoard;
+import chess.ChessGame;
+import com.google.gson.Gson;
 import ui.websocket.NotificationHandler;
 import websocket.messages.ServerMessage;
 import java.util.Scanner;
@@ -31,8 +34,28 @@ public class Repl implements NotificationHandler {
         System.out.println();
     }
 
-    @Override
-    public void notify(ServerMessage notification) {
 
+    public void notify(String notification) {
+        ServerMessage serverMessage = new Gson().fromJson(notification, ServerMessage.class);
+        switch(serverMessage.getServerMessageType()){
+            case LOAD_GAME:
+                loadGame(serverMessage);
+                break;
+            case ERROR:
+                printError(serverMessage);
+                break;
+            case NOTIFICATION:
+                printNotification(serverMessage);
+                break;
+        }
     }
+
+    private void loadGame(ServerMessage message){
+        ChessBoard board = message.getGame();
+        PrintBoard printer = new PrintBoard(board);
+        printer.printBoard(ChessGame.TeamColor.BLACK, null);
+    }
+    private void printError(ServerMessage message) {
+    }
+    private void printNotification(ServerMessage message){}
 }

@@ -1,9 +1,6 @@
 package ui;
 
-import chess.ChessGame;
-import chess.ChessMove;
-import chess.ChessPiece;
-import chess.ChessPosition;
+import chess.*;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -12,19 +9,22 @@ import static java.lang.System.out;
 import static ui.EscapeSequences.*;
 
 public class PrintBoard {
-    ChessGame game;
+    ChessBoard game;
 
-    public PrintBoard(ChessGame game){
+    public PrintBoard(ChessBoard game){
         this.game = game;
     }
 
-    public void updateGame(ChessGame game){
+    public void updateGame(ChessBoard game){
         this.game = game;
     }
 
     public void printBoard(ChessGame.TeamColor color, ChessPosition position){
         StringBuilder board = new StringBuilder();
-        Collection<ChessMove> possibleMoves = position != null ? game.validMoves(position) : null;
+        ChessGame clientGame = new ChessGame();
+        clientGame.setBoard(game);
+
+        Collection<ChessMove> possibleMoves = position != null ? clientGame.validMoves(position) : null;
         HashSet<ChessPosition> possibleSquares = HashSet.newHashSet(possibleMoves != null ? possibleMoves.size() : 0);
         board.append(SET_TEXT_BOLD);
 
@@ -116,7 +116,7 @@ public class PrintBoard {
     private String pieceColor(int row, int col){
         StringBuilder color = new StringBuilder();
         ChessPosition position = new ChessPosition(row, col);
-        ChessPiece piece = game.getBoard().getPiece(position);
+        ChessPiece piece = game.getPiece(position);
 
         if(piece != null){
             if(piece.getTeamColor() == ChessGame.TeamColor.WHITE){

@@ -29,17 +29,19 @@ public class ServerFacade {
         this.authToken = authToken;
     }
 
-    public void registerUser(UserData newUser) {
+    public String registerUser(UserData newUser) {
         var path = "/user";
         var request = makeRequest("POST", path, newUser, AuthData.class);
         setAuthToken(request.authToken());
+
+        return authToken;
     }
 
-    public boolean logIn(UserData user) {
+    public String logIn(UserData user) {
         var path = "/session";
         var request = makeRequest("POST", path, user, AuthData.class);
         setAuthToken(request.authToken());
-        return true;
+        return authToken;
     }
 
     public int createGame(GameData gameName){

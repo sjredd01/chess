@@ -1,9 +1,6 @@
 package ui;
 
-import chess.ChessGame;
-import chess.ChessMove;
-import chess.ChessPiece;
-import chess.ChessPosition;
+import chess.*;
 import exception.ResponseException;
 import model.GameData;
 import model.GameDataList;
@@ -27,7 +24,8 @@ public class ChessClient {
     private HashSet<GameDataList> games;
     public static PrintBoard printBoard;
     private ChessGame.TeamColor userColor = ChessGame.TeamColor.WHITE;
-    private GameData game;
+    private ChessBoard game;
+    private String authToken;
 
     public ChessClient(String serverURL, NotificationHandler notificationHandler){
         server = new ServerFacade(serverURL);
@@ -117,11 +115,12 @@ public class ChessClient {
             ChessMove move = new ChessMove(startPosition, endPosition, promotionPiece);
 
             ws = new WebSocketFacade(serverURL, notificationHandler);
-            ws.makeMove(username1, move);
-
+            ws.makeMove(authToken, move);
+            return "";
         }
-
-        throw new ResponseException(400, "Expected <STARTPOSITION> <ENDPOSITION>");
+        else {
+            throw new ResponseException(400, "Expected <STARTPOSITION> <ENDPOSITION>");
+        }
     }
 
     private String highlightMoves(String[] param) throws ResponseException {
@@ -129,7 +128,7 @@ public class ChessClient {
             var input = param[0];
             ChessPosition position = convertToPosition(input);
 
-            printBoard = new PrintBoard(game.game());
+            printBoard = new PrintBoard(game);
 
             printBoard.printBoard(userColor, position);
 
@@ -140,57 +139,17 @@ public class ChessClient {
         throw new ResponseException(400, "Expected <POSITION>");
     }
 
-    private int convertToInteger(char input) throws ResponseException {
-        int row;
-
-        if(input == 'a'){
-            row = 0;
-        } else if (input == 'b') {
-            row = 1;
-        }else if (input == 'c') {
-            row = 2;
-        }else if (input == 'd') {
-            row = 3;
-        }else if (input == 'e') {
-            row = 4;
-        }else if (input == 'f') {
-            row = 5;
-        }else if (input == 'g') {
-            row = 6;
-        }else if (input == 'h') {
-            row = 7;
-        }else{
-            throw new ResponseException(400, "Invalid position");
-        }
-
-        return row;
-    }
-
-    private int correctCol(char input) throws ResponseException {
-        int col;
-
-        col = (int) input - 1;
-
-        if(col >= 8){
-            throw new ResponseException(400, "Invalid position");
-        }
-
-        return col;
-    }
 
     private ChessPosition convertToPosition(String input) throws ResponseException {
-        ChessPosition position;
-        int row;
-        int col;
-        char[] charOfPosition = input.toCharArray();
+        var columnLetter =Character.toUpperCase(input.charAt(0));
+        int columnNum = (int) columnLetter - (int) 'A' + 1;
 
-        row = convertToInteger(charOfPosition[0]);
+        if(columnNum < 1 || columnNum > 8) {
+            throw new ResponseException(400, "Invalid Coordinates");
+        }
 
-        col = correctCol(charOfPosition[1]);
-
-        position = new ChessPosition(row, col);
-
-        return position;
+        var rowNum = Character.getNumericValue(input.charAt(1));
+        return new ChessPosition(rowNum, columnNum);
     }
 
     private String observeGame(String[] param) throws ResponseException, URISyntaxException {
@@ -211,10 +170,10 @@ public class ChessClient {
 
             state = State.GAMEPLAY;
             ws = new WebSocketFacade(serverURL, notificationHandler);
-            ws.observeGame(username1, gameToJoin);
+            ws.observeGame(authToken, gameToJoin);
 
             game = ws.getGame();
-            printBoard = new PrintBoard(game.game());
+            printBoard = new PrintBoard(game);
 
             printBoard.printBoard(userColor, null);
 
@@ -229,7 +188,7 @@ public class ChessClient {
 
     private String resignGame() throws ResponseException {
         ws = new WebSocketFacade(serverURL, notificationHandler);
-        ws.resignGame(username1);
+        ws.resignGame(authToken);
         state = State.LOGGEDIN;
 
         return username1 + " has resigned the game";
@@ -237,7 +196,7 @@ public class ChessClient {
 
     private String leaveGame() throws ResponseException {
         ws = new WebSocketFacade(serverURL, notificationHandler);
-        ws.leaveGame(username1);
+        ws.leaveGame(authToken);
         state = State.LOGGEDIN;
 
         return username1 + " has left the game";
@@ -245,11 +204,11 @@ public class ChessClient {
 
     private String redrawBoard() throws ResponseException {
         ws = new WebSocketFacade(serverURL, notificationHandler);
-        GameData game = ws.getGame();
-        printBoard = new PrintBoard(game.game());
-        if(username1.equals(game.blackUsername())){
-            userColor = ChessGame.TeamColor.BLACK;
-        }
+        ChessBoard game = ws.getGame();
+        printBoard = new PrintBoard(game);
+//        if(username1.equals(game.blackUsername())){
+//            userColor = ChessGame.TeamColor.BLACK;
+//        }
 
         printBoard.printBoard(userColor, null);
 
@@ -276,13 +235,13 @@ public class ChessClient {
             server.joinGame(gameToJoin, teamColor);
             state = State.GAMEPLAY;
             ws = new WebSocketFacade(serverURL, notificationHandler);
-            ws.joinGame(username1, gameToJoin);
+            ws.joinGame(authToken, gameToJoin);
 
             game = ws.getGame();
-            printBoard = new PrintBoard(game.game());
-            if(username1.equals(game.blackUsername())){
-                userColor = ChessGame.TeamColor.BLACK;
-            }
+            printBoard = new PrintBoard(game);
+//            if(username1.equals(game.blackUsername())){
+//                userColor = ChessGame.TeamColor.BLACK;
+//            }
 
             printBoard.printBoard(userColor, null);
 
@@ -330,7 +289,7 @@ public class ChessClient {
             var email = param[2];
             var newUser = new UserData(username, password, email);
             username1 = username;
-            server.registerUser(newUser);
+            authToken = server.registerUser(newUser);
             state = State.LOGGEDIN;
 
             return newUser.username() + " is now registered\n";
@@ -345,7 +304,7 @@ public class ChessClient {
             var password = param[1];
             UserData user = new UserData(username, password, null);
             username1 = username;
-            server.logIn(user);
+            authToken= server.logIn(user);
             state = State.LOGGEDIN;
 
             return user.username() + " is now logged in\n";

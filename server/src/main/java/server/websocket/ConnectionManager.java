@@ -17,7 +17,6 @@ public class ConnectionManager {
         if(connections.contains(gameID)){
             var inGame = connections.get(gameID);
             inGame.add(connection);
-            inGame.add(gameID, connection);
         }else{
             ArrayList<Connection> gamePlayer = new ArrayList<>();
             gamePlayer.add(connection);
